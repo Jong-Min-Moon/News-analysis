@@ -105,7 +105,7 @@ def Do_LDA(df, n_topic, n_iter):
         print(pd.Series([topic, today, str(i)]))
         LDA_today = LDA_today.append(pd.Series([topic, today, str(i), top3]), ignore_index = True)
     
-    LDA_today.columns = ['vector', 'time', 'topic', 'top3']
+    LDA_today.columns = ['vector', 'time', 'label', 'top3']
     LDA_today.to_csv( 'D:/crawling/LDAs/LDA_{}.csv'.format(today),index=False)  
       
 
@@ -128,10 +128,14 @@ def Do_LDA(df, n_topic, n_iter):
     df_with_tsne['x'] = tsne_lda[:,0]
     df_with_tsne['y'] = tsne_lda[:,1]
     df_with_tsne['label'] = label
+    return df_with_tsne,  LDA_today
     
+    top3_to_merge = LDA_today[['label', 'top3']].copy()
+    top3_to_merge.label = top3_to_merge.label.astype('int64')
+    df_with_tsne = pd.merge(df_with_tsne, top3_to_merge, on = 'label', how = 'left')
     df_with_tsne.to_csv('D:/crawling/NN/NN_{}.csv'.format(today),index=False)
 
-
+    
 
 class Crawler():
     def __init__(self, query, s_date, e_date, root):
@@ -300,18 +304,18 @@ class Crawler():
 
 def add_sent_score(data):
     from konlpy.tag import Okt
-    docs = data.content
+    new_data = data[data.content != 0].copy()
+    docs = new_data.content
     n = len(docs)
 
-    tokenizer = Okt()
 
     docs_brk = []
     for doc in docs:
-        doc_brk = tokenizer.morphs(doc)
+        doc_brk = tokenize(doc)
         tknd = ' '.join( doc_brk )
         docs_brk.append(tknd)
     
-    vect = CountVectorizer(min_df = 4, max_df = n * 0.5)
+    vect = CountVectorizer(min_df = 2, max_df = n * 0.7)
     vect.fit( docs_brk )
 
     #print("어휘 사전의 크기:", len(vect.vocabulary_))
@@ -369,7 +373,6 @@ def add_sent_score(data):
 
     #np.count_nonzero(score_vec_comp3 == 1)
     #np.count_nonzero(r > 1)
-    new_data = data
     new_data['polar_sum'] = r
     new_data['tot'] = tot
     new_data['sent_score'] = new_data['polar_sum'] / new_data['tot']

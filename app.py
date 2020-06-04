@@ -18,8 +18,8 @@ import matplotlib.colors as mcolors
 ######################### FUCNTIONS #########################
 
 import work
-data = work.merge('D:/crawling/NN')
-data_topic = work.merge('D:/crawling/LDAs')
+data = work.merge('./NN')
+data_topic = work.merge('./LDAs')
 
 
 
@@ -256,6 +256,46 @@ LDA_PLOTS = [
     ),
 ]
 
+#5. 시계열 그래프
+fig5 = go.Figure()
+
+df1 = pd.read_csv('D:/crawling/finance-charts-apple.csv')
+
+fig5.add_trace(
+   
+    #go.Bar(x=freq["x"][0:10],y=freq["Country"][0:10], marker=dict(color="crimson"), showlegend=False),
+    go.Scatter(
+    x = df1['Date'],
+    y = df1['mavg']
+)
+)
+
+fig5.add_trace(
+  
+    #go.Bar(x=freq["x"][0:10],y=freq["Country"][0:10], marker=dict(color="crimson"), showlegend=False),
+    go.Scatter(
+    x = df1['Date'],
+    y = df1['AAPL.High']
+)
+)
+
+fig5.update_xaxes(
+    rangeslider_visible=True,
+    rangeselector=dict(
+        buttons=list([
+            dict(count=1, label="1m", step="month", stepmode="backward"),
+            dict(count=6, label="6m", step="month", stepmode="backward"),
+            dict(count=1, label="YTD", step="year", stepmode="todate"),
+            dict(count=1, label="1y", step="year", stepmode="backward"),
+            dict(step="all")
+        ])
+    )
+)
+
+fig5.update_layout( title='지난 1년간 육군 관련 보도 감성 그래프(더미 데이터)',
+font=dict(family="NanumBarunGothic", size=16)
+)
+
 
 BODY = dbc.Container(
     [
@@ -269,7 +309,7 @@ BODY = dbc.Container(
 f_app = flask.Flask(__name__)
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], server = f_app)
 
-app.layout = html.Div(children=[NAVBAR, BODY])
+app.layout = html.Div(children=[NAVBAR, BODY, dcc.Graph(figure=fig5)])
 
 
 if __name__ == '__main__':

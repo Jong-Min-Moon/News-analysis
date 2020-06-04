@@ -10,33 +10,36 @@ from datetime import datetime
 
 import pickle
 
+
+
 if __name__ == '__main__':
         
     def job1():
-        #today = datetime.today().strftime('%Y-%m-%d')
-        today = '2020-05-31'
-        today_crawl = Crawler('육군', today, today, 'D:/crawling')
+        today = datetime.today().strftime('%Y-%m-%d')
+        #today = '2020-05-29'
+        today_crawl = Crawler('육군', today, today, 'D:/crawling/News-analysis')
         today_crawl.mkpath()
 
         today_crawl.getNClinks(0)
         #today_crawl.getNC(0)
         
         texts = today_crawl.NC_urls[0]
-        work.Do_LDA(texts, 7, 4000)
+        texts_sent = work.add_sent_score(texts)
+        work.Do_LDA(texts_sent, 6, 4000)
     
     job1()
 
 
-    # schedule.every().day.at("23:50:00").do(job1)
+    schedule.every().day.at("23:50:00").do(job1)
 
-    # from pprint import pprint
+    from pprint import pprint
 
-    # print("Job 확인")
-    # pprint(schedule.jobs)
+    print("Job 확인")
+    pprint(schedule.jobs)
 
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(1)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 
     
     
