@@ -98,16 +98,20 @@ def Do_LDA(df, n_topic, n_iter):
         print(', '.join(w for w, p in res))
 
     LDA_today = pd.DataFrame()
-    today = df.iloc[0,-1]
+    print(df.time)
+    today = df.time.iloc[0]
+
     for i in range(n_topic):
         topic = list(zip(model.vocabs, model.get_topic_word_dist(i)))
         topic.sort(key = lambda x: -x[1])
-        top3 = '/ '.join(item[0] for item in topic)
-        print(pd.Series([topic, today, str(i)]))
-        LDA_today = LDA_today.append(pd.Series([topic, today, str(i), top3]), ignore_index = True)
-    
-    LDA_today.columns = ['vector', 'time', 'label', 'top3']
-    LDA_today.to_csv( 'D:/crawling/News-analysis/LDAs/LDA_{}.csv'.format(today),index=False)  
+        topic = topic[:30]
+        top3 = '/ '.join(item[0] for item in topic[:3])
+       
+        temp_series = topic + [today, str(i), top3]
+        LDA_today = LDA_today.append(pd.Series(temp_series), ignore_index = True)
+
+    LDA_today.columns = ['word{}'.format(i) for i in range(30)]+ ['time', 'label', 'top3']
+    LDA_today.to_csv( 'D:/crawling/News-analysis/LDAs/LDA_{}.csv'.format(today),index=False, encoding='utf-8-sig')  
       
 
     #T-SNE 정보를 원본 데이터프레임에 추가
@@ -129,12 +133,11 @@ def Do_LDA(df, n_topic, n_iter):
     df_with_tsne['x'] = tsne_lda[:,0]
     df_with_tsne['y'] = tsne_lda[:,1]
     df_with_tsne['label'] = label
-    return df_with_tsne,  LDA_today
     
     top3_to_merge = LDA_today[['label', 'top3']].copy()
     top3_to_merge.label = top3_to_merge.label.astype('int64')
     df_with_tsne = pd.merge(df_with_tsne, top3_to_merge, on = 'label', how = 'left')
-    df_with_tsne.to_csv('D:/crawling/News-analysis/NN/NN_{}.csv'.format(today),index=False)
+    df_with_tsne.to_csv('D:/crawling/News-analysis/NN/NN_{}.csv'.format(today),index=False, encoding='utf-8-sig')
 
     
 

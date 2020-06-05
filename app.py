@@ -17,15 +17,13 @@ import os #파일 및 폴더 관리
 
 
 ######################### FUCNTIONS #########################
-
-
 def merge(mypath):
     file_list = os.listdir(mypath)
     file_list.sort()
 
-    data = pd.read_csv( mypath + '/' + file_list[0], encoding='utf8')
+    data = pd.read_csv( mypath + '/' + file_list[0], encoding='utf-8-sig')
     for filename in file_list[1:]:
-        data = data.append(pd.read_csv(mypath + '/' + filename, encoding='utf8'), ignore_index=True)
+        data = data.append(pd.read_csv(mypath + '/' + filename, encoding='utf-8-sig'), ignore_index=True)
         print(filename)
     
     return(data)
@@ -349,8 +347,9 @@ if __name__ == '__main__':
 )
 def update_wordcloud_plot(selected_day, topic_no):
     """ Callback to rerender wordcloud plot """
-    print(data_topic[(data_topic.time == selected_day) & (data_topic.topic == topic_no)].iloc[0,0])
-    plot_data = eval(data_topic[(data_topic.time == selected_day) & (data_topic.topic == topic_no)].iloc[0,0])
+    print(data_topic[(data_topic.time == selected_day) & (data_topic.label == topic_no)].iloc[0,0])
+    row = data_topic[(data_topic.time == '2020.06.04') & (data_topic.label == 0)].iloc[0][:-3]
+    plot_data = [eval(tup) for tup in row]
 
     
     
