@@ -14,8 +14,8 @@ import pickle
 
 if __name__ == '__main__':
         
-    def job1():
-        today = datetime.today().strftime('%Y-%m-%d')
+    def job1(today):
+        #today = datetime.today().strftime('%Y-%m-%d')
         #today = '2020-05-29'
         today_crawl = Crawler('육군', today, today, 'D:/crawling/News-analysis')
         today_crawl.mkpath()

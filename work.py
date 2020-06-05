@@ -46,6 +46,7 @@ import shutil #파일 한번에 삭제
 kiwi = Kiwi()
 print('kwi')
 kiwi.prepare()
+
 def tokenize(sent):
     res, score = kiwi.analyze(sent)[0] # 첫번째 결과를 사용
     return [word + ('다' if tag.startswith('V') else '') # 동사에는 '다'를 붙여줌
@@ -106,7 +107,7 @@ def Do_LDA(df, n_topic, n_iter):
         LDA_today = LDA_today.append(pd.Series([topic, today, str(i), top3]), ignore_index = True)
     
     LDA_today.columns = ['vector', 'time', 'label', 'top3']
-    LDA_today.to_csv( 'D:/crawling/LDAs/LDA_{}.csv'.format(today),index=False)  
+    LDA_today.to_csv( 'D:/crawling/News-analysis/LDAs/LDA_{}.csv'.format(today),index=False)  
       
 
     #T-SNE 정보를 원본 데이터프레임에 추가
@@ -133,7 +134,7 @@ def Do_LDA(df, n_topic, n_iter):
     top3_to_merge = LDA_today[['label', 'top3']].copy()
     top3_to_merge.label = top3_to_merge.label.astype('int64')
     df_with_tsne = pd.merge(df_with_tsne, top3_to_merge, on = 'label', how = 'left')
-    df_with_tsne.to_csv('D:/crawling/NN/NN_{}.csv'.format(today),index=False)
+    df_with_tsne.to_csv('D:/crawling/News-analysis/NN/NN_{}.csv'.format(today),index=False)
 
     
 
