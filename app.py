@@ -407,8 +407,7 @@ if __name__ == '__main__':
 )
 def update_wordcloud_plot(selected_day, topic_no):
     """ Callback to rerender wordcloud plot """
-    print(data_topic[(data_topic.time == selected_day) & (data_topic.label == topic_no)].iloc[0,0])
-    row = data_topic[(data_topic.time == '2020.06.04') & (data_topic.label == 0)].iloc[0][:-3]
+    row = data_topic[(data_topic.time == selected_day) & (data_topic.label == topic_no)].iloc[0][:-3]
     plot_data = [eval(tup) for tup in row]
 
     
