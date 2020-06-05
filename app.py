@@ -368,7 +368,7 @@ def update_wordcloud_plot(selected_day, topic_no):
 )
 def set_topic_options(selected_day):
     today_data = data_topic[ (data_topic.time == selected_day) ]
-    options_for_today = [ {"label": '{}번째 주제'.format(i), "value": i} for i in today_data.topic]
+    options_for_today = [ {"label": '{}번째 주제'.format(i), "value": i} for i in today_data.label]
     return options_for_today, 0
 
 
