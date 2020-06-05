@@ -271,7 +271,7 @@ LDA_PLOTS = [
 #5. 시계열 그래프
 fig5 = go.Figure()
 
-df1 = pd.read_csv('D:/crawling/finance-charts-apple.csv')
+df1 = pd.read_csv('./finance-charts-apple.csv')
 
 fig5.add_trace(
    
