@@ -347,6 +347,7 @@ if __name__ == '__main__':
 )
 def update_wordcloud_plot(selected_day, topic_no):
     """ Callback to rerender wordcloud plot """
+    print(data_topic[(data_topic.time == selected_day) & (data_topic.topic == topic_no)].iloc[0,0])
     plot_data = eval(data_topic[(data_topic.time == selected_day) & (data_topic.topic == topic_no)].iloc[0,0])
 
     
