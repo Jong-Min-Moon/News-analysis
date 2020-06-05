@@ -33,6 +33,8 @@ def merge(mypath):
 data = merge('./NN')
 data_topic = merge('./LDAs')
 
+print(data)
+print(data_topic)
 
 
 ######################### FUCNTIONS #########################
