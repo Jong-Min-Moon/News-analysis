@@ -318,15 +318,15 @@ BODY = dbc.Container(
     className="mt-12",
 )
 
-f_app = flask.Flask(__name__)
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], server = f_app)
+#f_app = flask.Flask(__name__)
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 app.layout = html.Div(children=[NAVBAR, BODY, dcc.Graph(figure=fig5)])
 
 
 if __name__ == '__main__':
     
-    app.run_server(debug=True, dev_tools_hot_reload = True)
+    app.run_server()
 
 
 
