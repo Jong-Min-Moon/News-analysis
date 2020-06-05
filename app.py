@@ -282,6 +282,8 @@ fig5.add_trace(
 )
 )
 
+
+############################################ TIME SERIES ####################################################
 fig5.add_trace(
   
     #go.Bar(x=freq["x"][0:10],y=freq["Country"][0:10], marker=dict(color="crimson"), showlegend=False),
@@ -307,6 +309,64 @@ fig5.update_xaxes(
 fig5.update_layout( title='지난 1년간 육군 관련 보도 감성 그래프(더미 데이터)',
 font=dict(family="NanumBarunGothic", size=16)
 )
+######################################################################################################
+
+############################################ TIME SERIES ####################################################
+
+fig6 = go.Figure()
+labels = ['Oxygen','Hydrogen','Carbon_Dioxide','Nitrogen']
+values = [4500, 2500, 1053, 500]
+
+fig6.add_trace(
+   go.Pie(labels=labels, values=values),
+   
+)
+
+######################################################################################################
+
+###########################################################################
+#1. 막대그래프
+fig1 = go.Figure()
+fig1.add_trace(go.Bar(
+    y = [1,2,3,4,5,6],
+    x=[20, 14, 23, 11, 12, 11],
+    name='긍정',
+    orientation='h',
+    marker=dict(
+        color='rgba(246, 78, 139, 0.6)',
+        line=dict(color='rgb(67, 67, 67)', width=3)
+    )
+))
+fig1.add_trace(go.Bar(
+    y = [1,2,3,4,5,6],
+    x=[12, 18, 29, 4, 5, 13],
+    name='부정',
+    orientation='h',
+    marker=dict(
+        color='rgba(58, 71, 80, 0.6)',
+        line=dict(color='rgba(246, 78, 139, 1.0)', width=3)
+    )
+))
+fig1.add_trace(go.Bar(
+    y = [1,2,3,4,5,6],
+    x=[15, 20, 19, 10, 11, 10],
+    name='중립',
+    orientation='h',
+    marker=dict(
+        color='rgba(58, 71, 80, 0.6)',
+        line=dict(color='rgba(58, 71, 80, 1.0)', width=3)
+    )
+))
+
+fig1.update_layout(
+    title='주제별 감성 비율(더미 데이터)',
+    barmode='stack',
+    font=dict(family="NanumBarunGothic", size=16)
+    )
+
+
+######################################################################
+
 
 
 BODY = dbc.Container(
@@ -321,7 +381,7 @@ BODY = dbc.Container(
 #f_app = flask.Flask(__name__)
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
-app.layout = html.Div(children=[NAVBAR, BODY, dcc.Graph(figure=fig5)])
+app.layout = html.Div(children=[NAVBAR, BODY, dcc.Graph(figure = fig5), dcc.Graph(figure = fig6), dcc.Graph(figure = fig1)])
 
 
 if __name__ == '__main__':
