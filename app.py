@@ -13,13 +13,25 @@ import numpy as np
 from wordcloud import WordCloud
 import matplotlib.colors as mcolors
 
+import os #파일 및 폴더 관리
 
 
 ######################### FUCNTIONS #########################
 
-import work
-data = work.merge('./NN')
-data_topic = work.merge('./LDAs')
+
+def merge(mypath):
+    file_list = os.listdir(mypath)
+    file_list.sort()
+
+    data = pd.read_csv( mypath + '/' + file_list[0] )
+    for filename in file_list[1:]:
+        data = data.append(pd.read_csv(mypath + '/' + filename), ignore_index=True)
+        print(filename)
+    
+    return(data)
+
+data = merge('./NN')
+data_topic = merge('./LDAs')
 
 
 
