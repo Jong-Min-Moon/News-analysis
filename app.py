@@ -23,9 +23,9 @@ def merge(mypath):
     file_list = os.listdir(mypath)
     file_list.sort()
 
-    data = pd.read_csv( mypath + '/' + file_list[0] )
+    data = pd.read_csv( mypath + '/' + file_list[0], encoding='utf8')
     for filename in file_list[1:]:
-        data = data.append(pd.read_csv(mypath + '/' + filename), ignore_index=True)
+        data = data.append(pd.read_csv(mypath + '/' + filename, encoding='utf8'), ignore_index=True)
         print(filename)
     
     return(data)
