@@ -16,7 +16,7 @@ import matplotlib.colors as mcolors
 import os #파일 및 폴더 관리
 
 
-######################### FUCNTIONS #########################
+######################### DATA #########################
 def merge(mypath):
     file_list = os.listdir(mypath)
     file_list.sort()
@@ -34,6 +34,16 @@ data_topic = merge('./LDAs')
 print(data)
 print(data_topic)
 
+all_days = np.sort(data.time.unique())
+data_sent_timeseries = pd.DataFrame()
+for YMD in all_days:
+    data_today = data[data.time == YMD]
+    pos = len(data_today[data_today.sent_score > 0])
+    neu = len(data_today[data_today.sent_score == 0])
+    neg = len(data_today[data_today.sent_score < 0])
+    total = len(data_today)
+    data_sent_timeseries = data_sent_timeseries.append(pd.Series([YMD, pos, neu, neg, total]), ignore_index = True)
+data_sent_timeseries.columns = ['time', 'pos', 'neu', 'neg', 'total']
 
 ######################### FUCNTIONS #########################
 def plotly_wordcloud(data_frame):
@@ -191,9 +201,9 @@ NAVBAR = dbc.Navbar(
 )
 
 
-all_days = np.sort(data.time.unique())
+
 wordcloud_dropdown_day = dcc.Dropdown(id = "day", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[0])
-wordcloud_dropdown_topic = dcc.Dropdown(id = "topic", options = [{'label': 0, 'value':0}], value = 0) 
+wordcloud_dropdown_topic = dcc.Dropdown(id = "topic") 
 wordcloud_freqtable = dcc.Loading(id = "loading-frequencies", children = [dcc.Graph(id = "frequency_figure")], type="default")
 wordcloud_treemap = dcc.Loading(id = "loading-treemap", children = [dcc.Graph(id = "bank-treemap")], type="default")
 wordcloud_cloudmap = dcc.Loading(id = "loading-wordcloud", children = [dcc.Graph(id = "bank-wordcloud")], type="default")
@@ -210,7 +220,7 @@ WORDCLOUD_PLOTS = [
             dbc.Row(
                 [ dbc.Col(wordcloud_dropdown_day), dbc.Col(wordcloud_dropdown_topic) ]
                 ),
-            dbc.Row(),
+            dbc.Row(html.Hr()),
             dbc.Row(
                 [ dbc.Col(wordcloud_freqtable),
                   dbc.Col(
@@ -268,32 +278,42 @@ LDA_PLOTS = [
     ),
 ]
 
-#5. 시계열 그래프
-fig5 = go.Figure()
-
-df1 = pd.read_csv('./finance-charts-apple.csv')
-
-fig5.add_trace(
-   
-    #go.Bar(x=freq["x"][0:10],y=freq["Country"][0:10], marker=dict(color="crimson"), showlegend=False),
-    go.Scatter(
-    x = df1['Date'],
-    y = df1['mavg']
-)
-)
-
 
 ############################################ TIME SERIES ####################################################
-fig5.add_trace(
-  
-    #go.Bar(x=freq["x"][0:10],y=freq["Country"][0:10], marker=dict(color="crimson"), showlegend=False),
-    go.Scatter(
-    x = df1['Date'],
-    y = df1['AAPL.High']
-)
-)
+#5. 시계열 그래프
+df1 = pd.read_csv('./finance-charts-apple.csv')
 
-fig5.update_xaxes(
+fig_timeseries = go.Figure()
+
+
+
+fig_timeseries.add_trace(
+    go.Scatter(
+    x = data_sent_timeseries['time'],
+    y = data_sent_timeseries['pos'],
+    name='긍정'
+))
+fig_timeseries.add_trace(
+    go.Scatter(
+    x = data_sent_timeseries['time'],
+    y = data_sent_timeseries['neg'],
+    name = '부정'
+))
+fig_timeseries.add_trace(
+    go.Scatter(
+    x = data_sent_timeseries['time'],
+    y = data_sent_timeseries['neu'],
+    name = '중립'
+))
+fig_timeseries.add_trace(
+    go.Scatter(
+    x = data_sent_timeseries['time'],
+    y = data_sent_timeseries['total'],
+    name = '총 보도 건수'
+))
+
+
+fig_timeseries.update_xaxes(
     rangeslider_visible=True,
     rangeselector=dict(
         buttons=list([
@@ -305,13 +325,45 @@ fig5.update_xaxes(
         ])
     )
 )
+#timeseries_dropdown_day = dcc.Dropdown(id = "day_for_timeseries", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[0])
 
-fig5.update_layout( title='지난 1년간 육군 관련 보도 감성 그래프(더미 데이터)',
-font=dict(family="NanumBarunGothic", size=16)
+TIMESERIES_PLOT = dcc.Loading(
+     id="loading-timeseries-plot", children=[dcc.Graph(id="timeseries", figure = fig_timeseries)], type="default"
 )
+TIMESERIES_PLOTS = [
+    dbc.CardHeader(html.H5("육군 관련 보도 시계열 그래프")),
+    dbc.Alert(
+        "Not enough data to render TIME SERIES plots, please adjust the filters",
+        id="no-data-alert-timeseries",
+        color="warning",
+        style={"display": "none"},
+    ),
+    dbc.CardBody(
+        [
+           #timeseries_dropdown_day,
+            html.P(
+                "아래쪽 탐색기의 양 끝 막대를 드래그하면 원하는 구간을 자세히 볼 수 있습니다. 위쪽의 그래프를 더블클릭하면 구간 설정이 리셋됩니다.",
+                className="mb-0",
+            ),
+            html.P(
+                "(not affected by sample size or time frame selection)",
+                style={"fontSize": 10, "font-weight": "lighter"},
+            ),
+            TIMESERIES_PLOT,
+            html.Hr()
+            #LDA_TABLE,
+        ]
+    ),
+]
+
+
+# )
+
+
+
 ######################################################################################################
 
-############################################ TIME SERIES ####################################################
+############################################ PIE ####################################################
 
 fig6 = go.Figure()
 labels = ['Oxygen','Hydrogen','Carbon_Dioxide','Nitrogen']
@@ -366,32 +418,47 @@ fig1.update_layout(
 
 
 ######################################################################
-
-
-
 BODY = dbc.Container(
     [
         
         dbc.Card(WORDCLOUD_PLOTS),
         dbc.Row([dbc.Col([dbc.Card(LDA_PLOTS)])], style={"marginTop": 50}),
+        dbc.Row([dbc.Col([dbc.Card(TIMESERIES_PLOTS)])], style={"marginTop": 50})
     ],
     className="mt-12",
 )
+#########################################################
 
-#f_app = flask.Flask(__name__)
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-server = app.server
-app.layout = html.Div(children=[NAVBAR, BODY, dcc.Graph(figure = fig5), dcc.Graph(figure = fig6), dcc.Graph(figure = fig1)])
 
 
-if __name__ == '__main__':
-    
-    app.run_server()
+app.layout = html.Div([
+    NAVBAR, BODY, dcc.Graph(figure = fig6), dcc.Graph(figure = fig1)
+])
+
+
 
 
 
 ################################################################################
 #CALLBACKS
+@app.callback(
+    [Output("topic", "options")],
+    [Input("day", "value")]
+)
+def set_topic_options(selected_day):
+    today_data = data_topic[ (data_topic.time == selected_day) ]
+    print('today_data', today_data.label)
+    opp = [[ {"label": '{}번째 주제:{}'.format(i, today_data[today_data.label == i].top3.item()), "value": i} for i in today_data.label]] #one-element list, whose the only element is a 6-element list.
+    print(opp)
+    return opp 
+
+    
+@app.callback(
+    Output('topic', 'value'),
+    [Input('topic', 'options')])
+def set_topic_value(available_options):
+    return available_options[0]['value']
 
 @app.callback(
     [
@@ -420,15 +487,7 @@ def update_wordcloud_plot(selected_day, topic_no):
     return (wordcloud, frequency_figure, treemap, alert_style)
 
 
-@app.callback(
-    [Output("topic", "options"),
-     Output("topic", "value")],
-    [Input("day", "value")]
-)
-def set_topic_options(selected_day):
-    today_data = data_topic[ (data_topic.time == selected_day) ]
-    options_for_today = [ {"label": '{}번째 주제'.format(i), "value": i} for i in today_data.label]
-    return options_for_today, 0
+
 
 
 
@@ -449,3 +508,21 @@ def update_lda_table(day):
     #data = df_dominant_topic.to_dict("records")
 
     return lda_scatter_figure, {"display": "none"}
+
+
+# @app.callback(
+#     [ Output("timeseries", "figure") ],
+#     [ Input("day_for_timeseries", "value")]
+# )
+# def update_timeseries_plot(selected_day):
+#     """ Callback to rerender wordcloud plot """
+#     data_today = data[data.time == day]
+#     plot_data = [eval(tup) for tup in row]
+
+    
+
+#     return (wordcloud, frequency_figure, treemap, alert_style)
+
+
+if __name__ == '__main__': #이게 callback보다 앞에 와야 callback이 디버깅됨
+    app.run_server(debug=True)
