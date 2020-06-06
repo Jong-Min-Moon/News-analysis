@@ -5,6 +5,7 @@
 * yes and yes
 * 터미널 재시작
 * python extension
+* git checkout --track origin/heroku
 
 * You can view the finished app on [Heroku](https://flying-dog.herokuapp.com/).
 * Take a moment to read my [Medium post about deploying Dash apps](https://medium.com/@austinlasseter/how-to-deploy-a-simple-plotly-dash-app-to-heroku-622a2216eb73).
