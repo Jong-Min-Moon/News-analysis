@@ -12,22 +12,7 @@
 
 
 
-* vscode에서 실행할 때:
-f_app = flask.Flask(__name__)
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], server=f_app)
-app.layout =
-if __name__ == '__main__':
-    app.run_server(debug=True)
 
-* heroku에서 실행할 때:
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-server = app.server
-app.layout = html.Div(children=[NAVBAR, BODY, dcc.Graph(figure = fig6), dcc.Graph(figure = fig1)])
-
-
-if __name__ == '__main__':
-    
-    app.run_server(debug=True)
 
 * You can view the finished app on [Heroku](https://flying-dog.herokuapp.com/).
 * Take a moment to read my [Medium post about deploying Dash apps](https://medium.com/@austinlasseter/how-to-deploy-a-simple-plotly-dash-app-to-heroku-622a2216eb73).

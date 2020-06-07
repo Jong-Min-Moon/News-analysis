@@ -85,7 +85,7 @@ def plotly_wordcloud(data_frame):
     # get the relative occurence frequencies
     new_freq_list = []
     for i in freq_list:
-        new_freq_list.append(i * 80000)
+        new_freq_list.append(i * 80)
 
     trace = go.Scatter(
         x=x_arr,
@@ -150,26 +150,34 @@ def populate_lda_scatter(data_input):
     mycolors = np.array([color for name, color in mcolors.TABLEAU_COLORS.items()])
     
     
-    # for each topic we create a separate trace
+    # for each topic and sentiment, we create a separate trace
     traces = []
-    #for topic_id in df_top3words["topic_id"]:
-    for i in data_input.label.unique():
-        df_topic = data_input[ data_input.label == i]
+    markers_list = ['circle', 'x', 'square']
+    for topic_no in data_input.label.unique():
+        df_topic = data_input[ data_input.label == topic_no]
+        bools = {'pos' : (df_topic.sent_score > 0), 'neg' : (df_topic.sent_score < 0), 'neu' : (df_topic.sent_score == 0)}
         cluster_name = df_topic.iloc[0,-1]
-        trace = go.Scatter(
-            name = str(cluster_name),
-            x=df_topic["x"],
-            y=df_topic["y"],
-            mode="markers",
-            hovertext=df_topic["title"],
-            marker=dict(
-                size=6,
-                color=mycolors[i],  # set color equal to a variable
-                colorscale="Viridis",
-                showscale=False,
-            ),
-        )
-        traces.append(trace)
+
+        for i, abool in enumerate(bools):
+            trace = go.Scatter(
+                name = '{}_{}'.format(cluster_name, abool ),
+                x=df_topic[bools[abool]]["x"],
+                y=df_topic[bools[abool]]["y"],
+                mode="markers",
+                hovertext=df_topic["title"],
+                marker_symbol = markers_list[i],
+                opacity=0.6,
+                marker=dict(
+                    size=7,
+                    color=mycolors[topic_no],  # set color equal to a variable
+                    colorscale="Viridis",
+                    showscale=False,
+                )
+            )
+            traces.append(trace)
+
+
+       
 
     layout = go.Layout({"title": "LDA를 이용한 주제 분류"})
 
@@ -281,10 +289,8 @@ LDA_PLOTS = [
 
 ############################################ TIME SERIES ####################################################
 #5. 시계열 그래프
-df1 = pd.read_csv('./finance-charts-apple.csv')
 
 fig_timeseries = go.Figure()
-
 
 
 fig_timeseries.add_trace(
@@ -325,7 +331,6 @@ fig_timeseries.update_xaxes(
         ])
     )
 )
-#timeseries_dropdown_day = dcc.Dropdown(id = "day_for_timeseries", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[0])
 
 TIMESERIES_PLOT = dcc.Loading(
      id="loading-timeseries-plot", children=[dcc.Graph(id="timeseries", figure = fig_timeseries)], type="default"
@@ -344,10 +349,6 @@ TIMESERIES_PLOTS = [
             html.P(
                 "아래쪽 탐색기의 양 끝 막대를 드래그하면 원하는 구간을 자세히 볼 수 있습니다. 위쪽의 그래프를 더블클릭하면 구간 설정이 리셋됩니다.",
                 className="mb-0",
-            ),
-            html.P(
-                "(not affected by sample size or time frame selection)",
-                style={"fontSize": 10, "font-weight": "lighter"},
             ),
             TIMESERIES_PLOT,
             html.Hr()
@@ -373,7 +374,34 @@ fig6.add_trace(
    go.Pie(labels=labels, values=values),
    
 )
-
+PIE_dropdown_day = dcc.Dropdown(id = "day_for_pie", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[0])
+PIE_dropdown_topic = dcc.Dropdown(id = "topic_for_pie") 
+PIE_PLOT = dcc.Loading(
+     id="loading-PIE-plot", children=[dcc.Graph(id="PIE", figure = fig6)], type="default"
+)
+PIE_PLOTS = [
+    dbc.CardHeader(html.H5("육군 관련 보도 파이 그래프")),
+    dbc.Alert(
+        "Not enough data to render TIME SERIES plots, please adjust the filters",
+        id="no-data-alert-PIE",
+        color="warning",
+        style={"display": "none"},
+    ),
+    dbc.CardBody(
+        [
+           dbc.Row(
+                [ dbc.Col(PIE_dropdown_day), dbc.Col(PIE_dropdown_topic) ]
+                ),
+            html.P(
+                "아래쪽 탐색기의 양 끝 막대를 드래그하면 원하는 구간을 자세히 볼 수 있습니다. 위쪽의 그래프를 더블클릭하면 구간 설정이 리셋됩니다.",
+                className="mb-0",
+            ),
+            PIE_PLOT,
+            html.Hr()
+            #LDA_TABLE,
+        ]
+    ),
+]
 ######################################################################################################
 
 ###########################################################################
@@ -423,7 +451,8 @@ BODY = dbc.Container(
         
         dbc.Card(WORDCLOUD_PLOTS),
         dbc.Row([dbc.Col([dbc.Card(LDA_PLOTS)])], style={"marginTop": 50}),
-        dbc.Row([dbc.Col([dbc.Card(TIMESERIES_PLOTS)])], style={"marginTop": 50})
+        dbc.Row([dbc.Col([dbc.Card(TIMESERIES_PLOTS)])], style={"marginTop": 50}),
+        dbc.Row([dbc.Col([dbc.Card(PIE_PLOTS)])], style={"marginTop": 50})
     ],
     className="mt-12",
 )
@@ -433,7 +462,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
 app.layout = html.Div([
-    NAVBAR, BODY, dcc.Graph(figure = fig6), dcc.Graph(figure = fig1)
+    NAVBAR, BODY, dcc.Graph(figure = fig1)
 ])
 
 
@@ -510,6 +539,24 @@ def update_lda_table(day):
     return lda_scatter_figure, {"display": "none"}
 
 
+#PIE
+@app.callback(
+    [Output("topic_for_pie", "options")],
+    [Input("day_for_pie", "value")]
+)
+def set_topic_options(selected_day):
+    today_data = data_topic[ (data_topic.time == selected_day) ]
+    print('today_data', today_data.label)
+    opp = [[ {"label": '{}번째 주제:{}'.format(i, today_data[today_data.label == i].top3.item()), "value": i} for i in today_data.label]] #one-element list, whose the only element is a 6-element list.
+    print(opp)
+    return opp 
+
+@app.callback(
+    Output('topic_for_pie', 'value'),
+    [Input('topic_for_pie', 'options')])
+def set_topic_value(available_options):
+    return available_options[0]['value']
+    
 # @app.callback(
 #     [ Output("timeseries", "figure") ],
 #     [ Input("day_for_timeseries", "value")]
