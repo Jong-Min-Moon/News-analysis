@@ -4,6 +4,7 @@ import dash
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
+import dash_table
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 
@@ -210,7 +211,7 @@ NAVBAR = dbc.Navbar(
 
 
 
-wordcloud_dropdown_day = dcc.Dropdown(id = "day", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[0])
+wordcloud_dropdown_day = dcc.Dropdown(id = "day", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[-1])
 wordcloud_dropdown_topic = dcc.Dropdown(id = "topic") 
 wordcloud_freqtable = dcc.Loading(id = "loading-frequencies", children = [dcc.Graph(id = "frequency_figure")], type="default")
 wordcloud_treemap = dcc.Loading(id = "loading-treemap", children = [dcc.Graph(id = "bank-treemap")], type="default")
@@ -260,6 +261,51 @@ LDA_PLOT = dcc.Loading(
     id="loading-lda-plot", children=[dcc.Graph(id="tsne-lda")], type="default"
 )
 
+LDA_TABLE = html.Div(
+    id="lda-table-block",
+    children=[
+        dcc.Loading(
+            id="loading-lda-table",
+            children=[
+                dash_table.DataTable(
+                    id="lda-table",
+                    style_cell_conditional=[
+                        {
+                            "if": {"column_id": "Text"},
+                            "textAlign": "left",
+                            "whiteSpace": "normal",
+                            "height": "auto",
+                            "min-width": "50%",
+                        }
+                    ],
+                    style_data_conditional=[
+                        {
+                            "if": {"row_index": "odd"},
+                            "backgroundColor": "rgb(243, 246, 251)",
+                        }
+                    ],
+                    style_cell={
+                        "padding": "16px",
+                        "whiteSpace": "normal",
+                        "height": "auto",
+                        "max-width": "0",
+                    },
+                    style_header={"backgroundColor": "white", "fontWeight": "bold"},
+                    style_data={"whiteSpace": "normal", "height": "auto"},
+                    filter_action="native",
+                    page_action="native",
+                    page_current=0,
+                    page_size=5,
+                    columns=[],
+                    data=[],
+                )
+            ],
+            type="default",
+        )
+    ],
+    style={"display": "none"},
+)
+
 
 LDA_PLOTS = [
     dbc.CardHeader(html.H5("T-SNE 시각화")),
@@ -281,7 +327,7 @@ LDA_PLOTS = [
             ),
             LDA_PLOT,
             html.Hr(),
-            #LDA_TABLE,
+            LDA_TABLE
         ]
     ),
 ]
@@ -365,37 +411,29 @@ TIMESERIES_PLOTS = [
 ######################################################################################################
 
 ############################################ PIE ####################################################
-
-fig6 = go.Figure()
-labels = ['Oxygen','Hydrogen','Carbon_Dioxide','Nitrogen']
-values = [4500, 2500, 1053, 500]
-
-fig6.add_trace(
-   go.Pie(labels=labels, values=values),
-   
-)
-PIE_dropdown_day = dcc.Dropdown(id = "day_for_pie", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[0])
+PIE_dropdown_day = dcc.Dropdown(id = "day_for_pie", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[-1])
 PIE_dropdown_topic = dcc.Dropdown(id = "topic_for_pie") 
 PIE_PLOT = dcc.Loading(
-     id="loading-PIE-plot", children=[dcc.Graph(id="PIE", figure = fig6)], type="default"
+     id="loading-PIE-plot", children=[dcc.Graph(id="PIE")], type="default"
 )
 PIE_PLOTS = [
-    dbc.CardHeader(html.H5("육군 관련 보도 파이 그래프")),
+    dbc.CardHeader(html.H5("육군 관련 보도 감성분석 파이 그래프")),
     dbc.Alert(
-        "Not enough data to render TIME SERIES plots, please adjust the filters",
+        "Not enough data to render PIE plots, please adjust the filters",
         id="no-data-alert-PIE",
         color="warning",
         style={"display": "none"},
     ),
     dbc.CardBody(
         [
+            html.P(
+                '날짜와 주제를 선택하세요.',
+                className="mb-0",
+            ),
            dbc.Row(
                 [ dbc.Col(PIE_dropdown_day), dbc.Col(PIE_dropdown_topic) ]
                 ),
-            html.P(
-                "아래쪽 탐색기의 양 끝 막대를 드래그하면 원하는 구간을 자세히 볼 수 있습니다. 위쪽의 그래프를 더블클릭하면 구간 설정이 리셋됩니다.",
-                className="mb-0",
-            ),
+            
             PIE_PLOT,
             html.Hr()
             #LDA_TABLE,
@@ -406,53 +444,84 @@ PIE_PLOTS = [
 
 ###########################################################################
 #1. 막대그래프
-fig1 = go.Figure()
-fig1.add_trace(go.Bar(
-    y = [1,2,3,4,5,6],
-    x=[20, 14, 23, 11, 12, 11],
+latest_data = data[ (data.time == all_days[-1]) ]
+bar_y = [ '{}번째 주제:{}'.format(i, latest_data[latest_data.label == i].top3.iloc[0]) for i in np.sort(latest_data.label.unique())]
+bar_x = [[],[],[]]
+
+for i in np.sort(latest_data.label.unique()): 
+    latest_data_for_topic = latest_data[latest_data.label == i]
+    bar_x[0].append( len(latest_data_for_topic[latest_data_for_topic.sent_score > 0]) ) #pos
+    bar_x[1].append( len(latest_data_for_topic[latest_data_for_topic.sent_score == 0]) ) #neu
+    bar_x[2].append( len(latest_data_for_topic[latest_data_for_topic.sent_score < 0]) ) #neg
+
+print(bar_y)
+print(bar_x)
+
+fig_bar = go.Figure()
+fig_bar.add_trace(go.Bar(
+    y = bar_y,
+    x = bar_x[0],
     name='긍정',
     orientation='h',
     marker=dict(
-        color='rgba(246, 78, 139, 0.6)',
-        line=dict(color='rgb(67, 67, 67)', width=3)
+        color = 'rgb(1, 102, 94)',
+        line = dict(color = 'rgb(1, 102, 94)', width=3)
     )
 ))
-fig1.add_trace(go.Bar(
-    y = [1,2,3,4,5,6],
-    x=[12, 18, 29, 4, 5, 13],
-    name='부정',
+fig_bar.add_trace(go.Bar(
+    y = bar_y,
+    x = bar_x[1],
+    name = '중립',
     orientation='h',
     marker=dict(
-        color='rgba(58, 71, 80, 0.6)',
-        line=dict(color='rgba(246, 78, 139, 1.0)', width=3)
+        color = 'rgb(135, 135, 135)',
+        line = dict(color = 'rgb(135, 135, 135)', width=3)
     )
 ))
-fig1.add_trace(go.Bar(
-    y = [1,2,3,4,5,6],
-    x=[15, 20, 19, 10, 11, 10],
-    name='중립',
+fig_bar.add_trace(go.Bar(
+    y = bar_y,
+    x = bar_x[0],
+    name = '부정',
     orientation='h',
     marker=dict(
-        color='rgba(58, 71, 80, 0.6)',
-        line=dict(color='rgba(58, 71, 80, 1.0)', width=3)
+        color = 'rgb(172, 43, 36)',
+        line = dict(color = 'rgb(172, 43, 36)', width=3)
     )
 ))
 
-fig1.update_layout(
-    title='주제별 감성 비율(더미 데이터)',
+fig_bar.update_layout(
     barmode='stack',
     font=dict(family="NanumBarunGothic", size=16)
     )
 
-
+BAR_PLOT = dcc.Loading(
+     id="loading-BAR-plot", children=[dcc.Graph(id="BAR", figure = fig_bar)], type="default"
+)
+BAR_PLOTS = [
+    dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스 주제별 감성 현황")),
+    dbc.Alert(
+        "Not enough data to render BAR plots, please adjust the filters",
+        id="no-data-alert-BAR",
+        color="warning",
+        style={"display": "none"},
+    ),
+    dbc.CardBody(
+        [
+            BAR_PLOT,
+            html.Hr()
+            #LDA_TABLE,
+        ]
+    ),
+]
 ######################################################################
 BODY = dbc.Container(
     [
-        
-        dbc.Card(WORDCLOUD_PLOTS),
+        dbc.Card(BAR_PLOTS),
+        dbc.Row([dbc.Col([dbc.Card(PIE_PLOTS)])], style={"marginTop": 50}),
+        dbc.Row([dbc.Col([dbc.Card(WORDCLOUD_PLOTS)])], style={"marginTop": 50}),
         dbc.Row([dbc.Col([dbc.Card(LDA_PLOTS)])], style={"marginTop": 50}),
-        dbc.Row([dbc.Col([dbc.Card(TIMESERIES_PLOTS)])], style={"marginTop": 50}),
-        dbc.Row([dbc.Col([dbc.Card(PIE_PLOTS)])], style={"marginTop": 50})
+        dbc.Row([dbc.Col([dbc.Card(TIMESERIES_PLOTS)])], style={"marginTop": 50})
+        
     ],
     className="mt-12",
 )
@@ -462,7 +531,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
 app.layout = html.Div([
-    NAVBAR, BODY, dcc.Graph(figure = fig1)
+    NAVBAR, BODY
 ])
 
 
@@ -547,7 +616,7 @@ def update_lda_table(day):
 def set_topic_options(selected_day):
     today_data = data_topic[ (data_topic.time == selected_day) ]
     print('today_data', today_data.label)
-    opp = [[ {"label": '{}번째 주제:{}'.format(i, today_data[today_data.label == i].top3.item()), "value": i} for i in today_data.label]] #one-element list, whose the only element is a 6-element list.
+    opp = [[{'label': '전체', 'value' : -1}] + [ {"label": '{}번째 주제:{}'.format(i, today_data[today_data.label == i].top3.item()), "value": i} for i in today_data.label]] #one-element list, whose the only element is a 6-element list.
     print(opp)
     return opp 
 
@@ -556,19 +625,33 @@ def set_topic_options(selected_day):
     [Input('topic_for_pie', 'options')])
 def set_topic_value(available_options):
     return available_options[0]['value']
-    
-# @app.callback(
-#     [ Output("timeseries", "figure") ],
-#     [ Input("day_for_timeseries", "value")]
-# )
-# def update_timeseries_plot(selected_day):
-#     """ Callback to rerender wordcloud plot """
-#     data_today = data[data.time == day]
-#     plot_data = [eval(tup) for tup in row]
 
-    
 
-#     return (wordcloud, frequency_figure, treemap, alert_style)
+@app.callback(
+    Output("PIE", "figure"),
+    [ Input("day_for_pie", "value"),
+    Input("topic_for_pie", "value")]
+)
+def update_pie_plot(selected_day, selected_topic):
+    """ Callback to rerender pie plot """
+    if selected_topic == -1:
+        data_today_sent = data_sent_timeseries[data_sent_timeseries.time == selected_day]
+        sent_values = list(data_today_sent.iloc[0,1:-1])
+    else:
+        data_today = data[(data.time == selected_day) & (data.label == selected_topic)]
+        print(data_today)
+        pos = len(data_today[data_today.sent_score > 0])
+        neu = len(data_today[data_today.sent_score == 0])
+        neg = len(data_today[data_today.sent_score < 0])
+        sent_values = [pos, neu, neg]
+    
+    fig = go.Figure()
+    print(sent_values)
+    fig.add_trace(
+        go.Pie(labels = ['긍정','중립','부정'], values = sent_values))
+    print(fig)
+    return fig
+
 
 
 if __name__ == '__main__': #이게 callback보다 앞에 와야 callback이 디버깅됨
