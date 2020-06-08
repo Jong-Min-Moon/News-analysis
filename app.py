@@ -534,7 +534,7 @@ app.layout = html.Div([
     NAVBAR, BODY
 ])
 
-
+server = app.server
 
 
 
