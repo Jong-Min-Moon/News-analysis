@@ -34,6 +34,9 @@ data_topic = merge('./LDAs')
 data['Document_No'] = np.arange(0, len(data))
 data_comment = merge('./NC')
 data_comment = pd.merge(data_comment, data[['url', 'Document_No']], how = 'left', on = 'url')
+print(data_comment)
+best_comment = data_comment.sort_values(by = 'like')[:1]
+print(best_comment)
 print(data)
 print(data_topic)
 
@@ -309,6 +312,50 @@ LDA_TABLE = html.Div(
     style={"display": "none"},
 )
 
+COMMENT_TABLE = html.Div(
+    id="comment-table-block",
+    children=[
+        dcc.Loading(
+            id="loading-comment-table",
+            children=[
+                dash_table.DataTable(
+                    id="comment-table",
+                    style_cell_conditional=[
+                        {
+                            "if": {"column_id": "Text"},
+                            "textAlign": "left",
+                            "whiteSpace": "normal",
+                            "height": "auto",
+                            "min-width": "50%",
+                        }
+                    ],
+                    style_data_conditional=[
+                        {
+                            "if": {"row_index": "odd"},
+                            "backgroundColor": "rgb(243, 246, 251)",
+                        }
+                    ],
+                    style_cell={
+                        "padding": "16px",
+                        "whiteSpace": "normal",
+                        "height": "auto",
+                        "max-width": "0",
+                    },
+                    style_header={"backgroundColor": "white", "fontWeight": "bold"},
+                    style_data={"whiteSpace": "normal", "height": "auto"},
+                    filter_action="native",
+                    page_action="native",
+                    page_current=0,
+                    page_size=5,
+                    columns=[],
+                    data=[],
+                )
+            ],
+            type="default",
+        )
+    ],
+    style={"display": "none"},
+)
 
 LDA_PLOTS = [
     dbc.CardHeader(html.H5("T-SNE 시각화")),
@@ -327,7 +374,9 @@ LDA_PLOTS = [
             LDA_dropdown_day,
             LDA_PLOT,
             html.Hr(),
-            LDA_TABLE
+            LDA_TABLE,
+            html.Hr(),
+            COMMENT_TABLE
         ]
     ),
 ]
@@ -623,7 +672,7 @@ def filter_table_on_scatter_click(tsne_click):
         
         return (data_lda_table, columns,  {"display": "block"} )
     else:
-        return ( []. [], {"display": "none"} )
+        return ( [], [], {"display": "none"} )
         
 
 
