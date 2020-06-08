@@ -674,6 +674,9 @@ def filter_table_on_scatter_click(tsne_click):
         data_lda_table = data_today_clicked.to_dict("records")
         
         comment_today_clicked = data_comment[data_comment['Document_No'] == int(selected_doc_no)]
+        comment_today_clicked = comment_today_clicked[['content', 'like', 'dislike', 'time', 're_reply']]
+        if len(comment_today_clicked) == 0:
+            comment_today_clicked = comment_today_clicked.append(pd.Series(['댓글 없음','','','','']))
         columns_comment = [{"name": i, "id": i} for i in comment_today_clicked.columns]
         comment_table = comment_today_clicked.to_dict("records")
 
@@ -731,4 +734,4 @@ def update_pie_plot(selected_day, selected_topic):
 
 
 if __name__ == '__main__': #이게 callback보다 앞에 와야 callback이 디버깅됨
-    app.run_server(debug = True)
+    app.run_server()
