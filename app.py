@@ -162,7 +162,7 @@ def populate_lda_scatter(data_input):
     for topic_no in data_input.label.unique():
         df_topic = data_input[ data_input.label == topic_no]
         bools = {'pos' : (df_topic.sent_score > 0), 'neg' : (df_topic.sent_score < 0), 'neu' : (df_topic.sent_score == 0)}
-        cluster_name = df_topic.iloc[0,-1]
+        cluster_name = df_topic.iloc[0,-2]
 
         for i, abool in enumerate(bools):
             trace = go.Scatter(
@@ -653,7 +653,10 @@ def update_lda_table(day):
     [
         Output("lda-table", "data"),
         Output("lda-table", "columns"),
-        Output("lda-table-block", "style")],
+        Output("lda-table-block", "style"),
+        Output("comment-table", "data"),
+        Output("comment-table", "columns"),
+        Output("comment-table-block", "style")],
     [Input("tsne-lda", "clickData")]
 )
 def filter_table_on_scatter_click(tsne_click):
@@ -667,12 +670,16 @@ def filter_table_on_scatter_click(tsne_click):
         print(selected_doc_no, selected_press, selected_title)
         
         data_today_clicked = data[data['Document_No'] == int(selected_doc_no)]
-        columns = [{"name": i, "id": i} for i in data_today_clicked.columns]
+        columns_news = [{"name": i, "id": i} for i in data_today_clicked.columns]
         data_lda_table = data_today_clicked.to_dict("records")
         
-        return (data_lda_table, columns,  {"display": "block"} )
+        comment_today_clicked = data_comment[data_comment['Document_No'] == int(selected_doc_no)]
+        columns_comment = [{"name": i, "id": i} for i in comment_today_clicked.columns]
+        comment_table = comment_today_clicked.to_dict("records")
+
+        return (data_lda_table, columns_news,  {"display": "block"} , comment_table, columns_comment, {"display": "block"})
     else:
-        return ( [], [], {"display": "none"} )
+        return ( [], [], {"display": "none"} , [], [], {"display": "none"})
         
 
 
@@ -724,4 +731,4 @@ def update_pie_plot(selected_day, selected_topic):
 
 
 if __name__ == '__main__': #이게 callback보다 앞에 와야 callback이 디버깅됨
-    app.run_server()
+    app.run_server(debug = True)
