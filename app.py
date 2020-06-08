@@ -449,8 +449,8 @@ for i in np.sort(latest_data.label.unique()):
     bar_x[1].append( len(latest_data_for_topic[latest_data_for_topic.sent_score == 0]) ) #neu
     bar_x[2].append( len(latest_data_for_topic[latest_data_for_topic.sent_score < 0]) ) #neg
 
-print(bar_y)
-print(bar_x)
+#print(bar_y)
+#print(bar_x)
 
 fig_bar = go.Figure()
 fig_bar.add_trace(go.Bar(
@@ -541,9 +541,9 @@ server = app.server
 )
 def set_topic_options(selected_day):
     today_data = data_topic[ (data_topic.time == selected_day) ]
-    print('today_data', today_data.label)
+    #print('today_data', today_data.label)
     opp = [[ {"label": '{}번째 주제:{}'.format(i, today_data[today_data.label == i].top3.item()), "value": i} for i in today_data.label]] #one-element list, whose the only element is a 6-element list.
-    print(opp)
+    #print(opp)
     return opp 
 
     
@@ -605,7 +605,7 @@ def update_lda_table(day):
         Output("lda-table-block", "style")],
     [Input("tsne-lda", "clickData")]
 )
-def filter_table_on_scatter_click(tsne_click, current_filter):
+def filter_table_on_scatter_click(tsne_click):
     """ TODO """
     if tsne_click is not None:
         click_item = str(tsne_click["points"][0]["hovertext"]).split('@')
@@ -633,9 +633,9 @@ def filter_table_on_scatter_click(tsne_click, current_filter):
 )
 def set_topic_options(selected_day):
     today_data = data_topic[ (data_topic.time == selected_day) ]
-    print('today_data', today_data.label)
+    #print('today_data', today_data.label)
     opp = [[{'label': '전체', 'value' : -1}] + [ {"label": '{}번째 주제:{}'.format(i, today_data[today_data.label == i].top3.item()), "value": i} for i in today_data.label]] #one-element list, whose the only element is a 6-element list.
-    print(opp)
+    #print(opp)
     return opp 
 
 @app.callback(
@@ -657,17 +657,17 @@ def update_pie_plot(selected_day, selected_topic):
         sent_values = list(data_today_sent.iloc[0,1:-1])
     else:
         data_today = data[(data.time == selected_day) & (data.label == selected_topic)]
-        print(data_today)
+        #print(data_today)
         pos = len(data_today[data_today.sent_score > 0])
         neu = len(data_today[data_today.sent_score == 0])
         neg = len(data_today[data_today.sent_score < 0])
         sent_values = [pos, neu, neg]
     
     fig = go.Figure()
-    print(sent_values)
+    #print(sent_values)
     fig.add_trace(
         go.Pie(labels = ['긍정','중립','부정'], values = sent_values))
-    print(fig)
+    #print(fig)
     return fig
 
 
