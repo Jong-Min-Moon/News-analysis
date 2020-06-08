@@ -395,7 +395,6 @@ TIMESERIES_PLOTS = [
             ),
             TIMESERIES_PLOT,
             html.Hr()
-            #LDA_TABLE,
         ]
     ),
 ]
@@ -433,7 +432,6 @@ PIE_PLOTS = [
             
             PIE_PLOT,
             html.Hr()
-            #LDA_TABLE,
         ]
     ),
 ]
@@ -626,7 +624,6 @@ def filter_table_on_scatter_click(tsne_click, current_filter):
         return ["", {"display": "none"}]
         
 
-(data_lda_table, columns,
 
 
 #PIE
