@@ -258,7 +258,7 @@ class Crawler():
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
-        browser = webdriver.Chrome('../chromedriver.exe',options=chrome_options) #put this line inside the function def, or chrome winodws keeps opening
+        browser = webdriver.Chrome('./chromedriver.exe',options=chrome_options) #put this line inside the function def, or chrome winodws keeps opening
 
         print('로드 완료', urls_table)
         for i, row in urls_table.iterrows():

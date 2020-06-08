@@ -165,7 +165,7 @@ def populate_lda_scatter(data_input):
                 x=df_topic[bools[abool]]["x"],
                 y=df_topic[bools[abool]]["y"],
                 mode="markers",
-                hovertext=df_topic["title"],
+                hovertext = '[' + df_topic.press + '] ' + df_topic.title,
                 marker_symbol = markers_list[i],
                 opacity=0.6,
                 marker=dict(
@@ -256,6 +256,7 @@ WORDCLOUD_PLOTS = [
     )
 ]
 
+LDA_dropdown_day = dcc.Dropdown(id = "day_for_LDA", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[-1])
 
 LDA_PLOT = dcc.Loading(
     id="loading-lda-plot", children=[dcc.Graph(id="tsne-lda")], type="default"
@@ -318,13 +319,10 @@ LDA_PLOTS = [
     dbc.CardBody(
         [
             html.P(
-                "Click on a complaint point in the scatter to explore that specific complaint",
+                "날짜를 선택하면 해당일의 기사들 간의 상대적인 거리와 위치를 볼 수 있습니다.",
                 className="mb-0",
             ),
-            html.P(
-                "(not affected by sample size or time frame selection)",
-                style={"fontSize": 10, "font-weight": "lighter"},
-            ),
+            LDA_dropdown_day,
             LDA_PLOT,
             html.Hr(),
             LDA_TABLE
@@ -404,7 +402,7 @@ TIMESERIES_PLOTS = [
 ]
 
 
-# )
+
 
 
 
@@ -480,7 +478,7 @@ fig_bar.add_trace(go.Bar(
 ))
 fig_bar.add_trace(go.Bar(
     y = bar_y,
-    x = bar_x[0],
+    x = bar_x[2],
     name = '부정',
     orientation='h',
     marker=dict(
@@ -596,7 +594,7 @@ def update_wordcloud_plot(selected_day, topic_no):
         #Output("lda-table", "columns"),
         Output("tsne-lda", "figure"),
         Output("no-data-alert-lda", "style")],
-    [Input("day", "value")],
+    [Input("day_for_LDA", "value")],
 )
 def update_lda_table(day):
     """ Update LDA table and scatter plot based on precomputed data """
@@ -606,6 +604,12 @@ def update_lda_table(day):
     #data = df_dominant_topic.to_dict("records")
 
     return lda_scatter_figure, {"display": "none"}
+
+
+
+
+
+
 
 
 #PIE
@@ -655,4 +659,4 @@ def update_pie_plot(selected_day, selected_topic):
 
 
 if __name__ == '__main__': #이게 callback보다 앞에 와야 callback이 디버깅됨
-    app.run_server()
+    app.run_server(debug = True)

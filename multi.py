@@ -12,6 +12,7 @@ import pickle
 
 
 
+
 if __name__ == '__main__':
         
     def job1(today):
@@ -23,20 +24,21 @@ if __name__ == '__main__':
         today_crawl.getNClinks(0)
         #today_crawl.getNC(0)
         
-        texts = today_crawl.NC_urls[0]
-        texts_sent = work.add_sent_score(texts)
-        work.Do_LDA(texts_sent, 6, 4000)
-    
-    
-    job1('2020-06-02')
-    job1('2020-06-01')
-    job1('2020-05-31')
-    job1('2020-05-30')
-    job1('2020-05-29')
-    job1('2020-05-28')
-    job1('2020-05-27')
-    job1('2020-05-26')
-    job1('2020-05-25')
+        #texts = today_crawl.NC_urls[0]
+        #texts_sent = work.add_sent_score(texts)
+        #work.Do_LDA(texts_sent, 6, 4000)
+
+        today_crawl.getNC(0)
+
+    job1('2020-06-04')
+    # job1('2020-06-01')
+    # job1('2020-05-31')
+    # job1('2020-05-30')
+    # job1('2020-05-29')
+    # job1('2020-05-28')
+    # job1('2020-05-27')
+    # job1('2020-05-26')
+    # job1('2020-05-25')
 
 
     # schedule.every().day.at("23:50:00").do(job1)
