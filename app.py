@@ -617,13 +617,13 @@ def filter_table_on_scatter_click(tsne_click):
         
         print(selected_doc_no, selected_press, selected_title)
         
-        data_today_clicked = data[data['Document_No'] == selected_doc_no]
+        data_today_clicked = data[data['Document_No'] == int(selected_doc_no)]
         columns = [{"name": i, "id": i} for i in data_today_clicked.columns]
         data_lda_table = data_today_clicked.to_dict("records")
         
-        return (columns, data_lda_table, {"display": "block"} )
+        return (data_lda_table, columns,  {"display": "block"} )
     else:
-        return ["", {"display": "none"}]
+        return ( []. [], {"display": "none"} )
         
 
 
