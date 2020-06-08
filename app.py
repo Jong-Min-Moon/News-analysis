@@ -336,7 +336,6 @@ LDA_PLOTS = [
 
 fig_timeseries = go.Figure()
 
-
 fig_timeseries.add_trace(
     go.Scatter(
     x = data_sent_timeseries['time'],
@@ -589,8 +588,7 @@ def update_wordcloud_plot(selected_day, topic_no):
 
 @app.callback(
     [
-        Output("lda-table", "data"),
-        Output("lda-table", "columns"),
+       
         Output("tsne-lda", "figure"),
         Output("no-data-alert-lda", "style")],
     [Input("day_for_LDA", "value")],
@@ -599,32 +597,36 @@ def update_lda_table(day):
     """ Update LDA table and scatter plot based on precomputed data """
     data_today = data[data.time == day]
     lda_scatter_figure = populate_lda_scatter(data_today)
-    
-    columns = [{"name": i, "id": i} for i in data_today.columns]
-    data_lda_table = data_today.to_dict("records")
-
-    return (data_lda_table, columns, lda_scatter_figure, {"display": "none"})
+    return lda_scatter_figure, {"display": "none"}
 
 
 @app.callback(
-    [Output("lda-table", "filter_query"), Output("lda-table-block", "style")],
-    [Input("tsne-lda", "clickData")],
-    [State("lda-table", "filter_query")],
+    [
+        Output("lda-table", "data"),
+        Output("lda-table", "columns"),
+        Output("lda-table-block", "style")],
+    [Input("tsne-lda", "clickData")]
 )
 def filter_table_on_scatter_click(tsne_click, current_filter):
     """ TODO """
     if tsne_click is not None:
-        selected_complaint = str(tsne_click["points"][0]["hovertext"]).split('@')[1]
-        selected_press = str(tsne_click["points"][0]["hovertext"]).split('@')[0]
-        print(selected_complaint)
-        filter_query = '({title} eq ' + str(selected_complaint)+') & ({press} eq ' + str(selected_press) + ')'
-        print("current_filter", filter_query)
-        return (filter_query, {"display": "block"})
+        click_item = str(tsne_click["points"][0]["hovertext"]).split('@')
+        selected_doc_no = click_item[0]
+        selected_press = click_item[1]
+        selected_title = click_item[2]
+        
+        print(selected_doc_no, selected_press, selected_title)
+        
+        data_today_clicked = data[data['Document_No'] == selected_doc_no]
+        columns = [{"name": i, "id": i} for i in data_today_clicked.columns]
+        data_lda_table = data_today_clicked.to_dict("records")
+        
+        return (columns, data_lda_table, {"display": "block"} )
     else:
         return ["", {"display": "none"}]
+        
 
-
-
+(data_lda_table, columns,
 
 
 #PIE
@@ -674,4 +676,4 @@ def update_pie_plot(selected_day, selected_topic):
 
 
 if __name__ == '__main__': #이게 callback보다 앞에 와야 callback이 디버깅됨
-    app.run_server(debug = True)
+    app.run_server()
