@@ -32,6 +32,8 @@ def merge(mypath):
 data = merge('./NN')
 data_topic = merge('./LDAs')
 data['Document_No'] = np.arange(0, len(data))
+data_comment = merge('./NC')
+data_comment = pd.merge(data_comment, data[['url', 'Document_No']], how = 'left', on = 'url')
 print(data)
 print(data_topic)
 
