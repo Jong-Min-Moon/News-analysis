@@ -31,7 +31,7 @@ def merge(mypath):
 
 data = merge('./NN')
 data_topic = merge('./LDAs')
-
+data['Document_No'] = np.arange(0, len(data))
 print(data)
 print(data_topic)
 
@@ -165,7 +165,7 @@ def populate_lda_scatter(data_input):
                 x=df_topic[bools[abool]]["x"],
                 y=df_topic[bools[abool]]["y"],
                 mode="markers",
-                hovertext = df_topic.press + '@' + df_topic.title,
+                hovertext = df_topic['Document_No'].astype('str') + '@' + df_topic.press + '@' + df_topic.title,
                 marker_symbol = markers_list[i],
                 opacity=0.6,
                 marker=dict(
@@ -615,8 +615,9 @@ def filter_table_on_scatter_click(tsne_click, current_filter):
     """ TODO """
     if tsne_click is not None:
         selected_complaint = str(tsne_click["points"][0]["hovertext"]).split('@')[1]
+        selected_press = str(tsne_click["points"][0]["hovertext"]).split('@')[0]
         print(selected_complaint)
-        filter_query = "{title} eq " + str(selected_complaint) 
+        filter_query = '({title} eq ' + str(selected_complaint)+') & ({press} eq ' + str(selected_press) + ')'
         print("current_filter", filter_query)
         return (filter_query, {"display": "block"})
     else:
