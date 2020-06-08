@@ -5,7 +5,7 @@ import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 import dash_html_components as html
 import dash_table
-from dash.dependencies import Input, Output
+from dash.dependencies import Output, Input, State
 import plotly.graph_objects as go
 
 
@@ -165,7 +165,7 @@ def populate_lda_scatter(data_input):
                 x=df_topic[bools[abool]]["x"],
                 y=df_topic[bools[abool]]["y"],
                 mode="markers",
-                hovertext = '[' + df_topic.press + '] ' + df_topic.title,
+                hovertext = df_topic.press + '@' + df_topic.title,
                 marker_symbol = markers_list[i],
                 opacity=0.6,
                 marker=dict(
@@ -574,7 +574,6 @@ def update_wordcloud_plot(selected_day, topic_no):
     plot_data = [eval(tup) for tup in row]
 
     
-    
     wordcloud, frequency_figure, treemap = plotly_wordcloud(dict(plot_data))
     alert_style = {"display": "none"}
     if (wordcloud == {}) or (frequency_figure == {}) or (treemap == {}):
@@ -590,8 +589,8 @@ def update_wordcloud_plot(selected_day, topic_no):
 
 @app.callback(
     [
-        #Output("lda-table", "data"),
-        #Output("lda-table", "columns"),
+        Output("lda-table", "data"),
+        Output("lda-table", "columns"),
         Output("tsne-lda", "figure"),
         Output("no-data-alert-lda", "style")],
     [Input("day_for_LDA", "value")],
@@ -600,13 +599,28 @@ def update_lda_table(day):
     """ Update LDA table and scatter plot based on precomputed data """
     data_today = data[data.time == day]
     lda_scatter_figure = populate_lda_scatter(data_today)
-    #columns = [{"name": i, "id": i} for i in data_today.columns]
-    #data = df_dominant_topic.to_dict("records")
+    
+    columns = [{"name": i, "id": i} for i in data_today.columns]
+    data_lda_table = data_today.to_dict("records")
 
-    return lda_scatter_figure, {"display": "none"}
+    return (data_lda_table, columns, lda_scatter_figure, {"display": "none"})
 
 
-
+@app.callback(
+    [Output("lda-table", "filter_query"), Output("lda-table-block", "style")],
+    [Input("tsne-lda", "clickData")],
+    [State("lda-table", "filter_query")],
+)
+def filter_table_on_scatter_click(tsne_click, current_filter):
+    """ TODO """
+    if tsne_click is not None:
+        selected_complaint = str(tsne_click["points"][0]["hovertext"]).split('@')[1]
+        print(selected_complaint)
+        filter_query = "{title} eq " + str(selected_complaint) 
+        print("current_filter", filter_query)
+        return (filter_query, {"display": "block"})
+    else:
+        return ["", {"display": "none"}]
 
 
 
