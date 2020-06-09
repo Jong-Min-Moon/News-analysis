@@ -298,29 +298,21 @@ COMMENT_BOTTOM5_SHOW = dash_table.DataTable(
 top1 = latest_data_comment_top5.iloc[:1, :]
 reply_press = top1.press.item()
 reply_title = top1.title.item()
+reply_url = top1.url.item()
+reply_time = top1.url.item()
+reply_like = top1.like.item()
+reply_dislike = top1.dislike.item()
+reply_content = top1.content.item()
+
 texttest = html.Div(
 children=[
                         html.H4(children='[{}] {}'.format(reply_press, reply_title)),
-                        html.P('Clustergram is a combination of a heatmap anddendrograms that allows you to display '
-                               'hierarchical clustering data. '
-                               'Clusters on the dendrograms are highlighted in '
-                               'one color if they comprise data points '
-                               'that share some minimal level of correlation.'),
-                        html.P('In the "Data" tab, you can select a preloaded '
-                               'dataset to display or, alternatively, upload one '
-                               'of your own. A sample dataset is also available '
-                               'for download in the tab.'),
-                        html.P('In the "Graph" tab, you can choose the '
-                               'dimension(s) along which clustering will be '
-                               'performed (row or column). You can also change '
-                               'the threshold that determines the point at which '
-                               'clusters are highlighted for the row and column '
-                               'dendrograms, and choose which rows and columns '
-                               'are used to compute the clustering.'),
-                        html.P('In addition, you can highlight specific clusters '
-                               'by adding annotations to the clustergram, and '
-                               'choose whether to show or hide the labels for the '
-                               'rows and/or columns.')
+                        html.P('기사 주소: {}'.format(reply_url)),
+                        html.P('댓글 작성 시간: {}'.format(reply_title)),
+                        html.P('좋아요: {}개 / 싫어요: {}개'.format(reply_like, reply_dislike)),
+                        html.P('좋아요: {}개 / 싫어요: {}개'.format(reply_like, reply_dislike)),
+                        html.P(reply_content)
+
                     ])
 COMMENT_TOP5_PLOTS = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스에 달린 댓글 중 좋아요가 가장 많은 5개")),
