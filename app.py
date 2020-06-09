@@ -277,11 +277,11 @@ LDA_TABLE = html.Div(
                     id="lda-table",
                     style_cell_conditional=[
                         {
-                            "if": {"column_id": "Text"},
+                            "if": {"column_id": "text"},
                             "textAlign": "left",
                             "whiteSpace": "normal",
                             "height": "auto",
-                            "min-width": "50%",
+                            "min-width": "80%",
                         }
                     ],
                     style_data_conditional=[
@@ -322,11 +322,11 @@ COMMENT_TABLE = html.Div(
                     id="comment-table",
                     style_cell_conditional=[
                         {
-                            "if": {"column_id": "Text"},
+                            "if": {"column_id": "댓글"},
                             "textAlign": "left",
                             "whiteSpace": "normal",
                             "height": "auto",
-                            "min-width": "50%",
+                            "min-width": "60%",
                         }
                     ],
                     style_data_conditional=[
@@ -346,7 +346,7 @@ COMMENT_TABLE = html.Div(
                     filter_action="native",
                     page_action="native",
                     page_current=0,
-                    page_size=5,
+                    page_size=7,
                     columns=[],
                     data=[],
                 )
@@ -667,16 +667,19 @@ def filter_table_on_scatter_click(tsne_click):
         selected_press = click_item[1]
         selected_title = click_item[2]
         
-        print(selected_doc_no, selected_press, selected_title)
         
-        data_today_clicked = data[data['Document_No'] == int(selected_doc_no)]
-        columns_news = [{"name": i, "id": i} for i in data_today_clicked.columns]
+        data_today_clicked = data[data['Document_No'] == int(selected_doc_no)].T
+        data_today_clicked.reset_index(drop = False, inplace = True)
+        data_today_clicked.columns = ['item', 'text']
+        columns_news = [{"name": 'item', "id": 'item'}, {"name": 'text', "id": 'text'}]
         data_lda_table = data_today_clicked.to_dict("records")
         
-        comment_today_clicked = data_comment[data_comment['Document_No'] == int(selected_doc_no)]
-        comment_today_clicked = comment_today_clicked[['content', 'like', 'dislike', 'time', 're_reply']]
+        
+        comment_today_clicked = data_comment[data_comment['Document_No'] == int(selected_doc_no)].iloc[:,4:9]
+        comment_today_clicked.columns = ['댓글', '좋아요', '싫어요', '작성시간', '답글']
         if len(comment_today_clicked) == 0:
-            comment_today_clicked = comment_today_clicked.append(pd.Series(['댓글 없음','','','','']))
+            comment_today_clicked = comment_today_clicked.append(pd.DataFrame(['댓글 없음', '','','',''], columns = ['댓글', '좋아요', '싫어요', '작성시간', '답글']), ignore_index = True)
+        
         columns_comment = [{"name": i, "id": i} for i in comment_today_clicked.columns]
         comment_table = comment_today_clicked.to_dict("records")
 
@@ -734,4 +737,4 @@ def update_pie_plot(selected_day, selected_topic):
 
 
 if __name__ == '__main__': #이게 callback보다 앞에 와야 callback이 디버깅됨
-    app.run_server()
+    app.run_server(debug = True)
