@@ -299,7 +299,7 @@ class Crawler():
 
                         df = df.append(pd.DataFrame([[press, title, url, content, like, dislike, time, re_reply]], columns=['press', 'title', 'url', 'content', 'like', 'dislike', 'time', 're_reply' ]), ignore_index=True)
             
-        df.to_csv( './NC/naver_comment_{}_{}.csv'.format(self.query, self.d_range[j],index=False))
+        df.to_csv( './NC/naver_comment_{}_{}.csv'.format(self.query, self.d_range[j]) ,index=False)
         self.NC = df
         print('총 {}개의 기사에서 {}개의 네이버 기사(댓글 달기 가능)를 가져옴'.format( len(urls_table), len(df) ) )
         browser.quit() 

@@ -34,11 +34,8 @@ data_topic = merge('./LDAs')
 data['Document_No'] = np.arange(0, len(data))
 data_comment = merge('./NC')
 data_comment = pd.merge(data_comment, data[['url', 'Document_No']], how = 'left', on = 'url')
-print(data_comment)
-best_comment = data_comment.sort_values(by = 'like')[:1]
-print(best_comment)
-print(data)
-print(data_topic)
+
+
 
 all_days = np.sort(data.time.unique())
 data_sent_timeseries = pd.DataFrame()
@@ -213,9 +210,89 @@ NAVBAR = dbc.Navbar(
     dark=True,
     sticky="top",
 )
+#######1. 막대그래프
+latest_data = data[ (data.time == all_days[-1]) ]
+bar_y = [ '{}번째 주제:{}'.format(i, latest_data[latest_data.label == i].top3.iloc[0]) for i in np.sort(latest_data.label.unique())]
+bar_x = [[],[],[]]
+for i in np.sort(latest_data.label.unique()): 
+    latest_data_for_topic = latest_data[latest_data.label == i]
+    bar_x[0].append( len(latest_data_for_topic[latest_data_for_topic.sent_score > 0]) ) #pos
+    bar_x[1].append( len(latest_data_for_topic[latest_data_for_topic.sent_score == 0]) ) #neu
+    bar_x[2].append( len(latest_data_for_topic[latest_data_for_topic.sent_score < 0]) ) #neg
+
+latest_data_comment = data_comment[data_comment.time.str.slice(start = 0, stop = 10) == all_days[-1] ]
+latest_data_comment = latest_data_comment.sort_values(by = 'like', ascending = False).iloc[:2, :]
+print(latest_data_comment)
 
 
 
+#print(bar_y)
+#print(bar_x)
+
+fig_bar = go.Figure()
+fig_bar.add_trace(go.Bar(
+    y = bar_y,
+    x = bar_x[0],
+    name='긍정',
+    orientation='h',
+    marker=dict(
+        color = 'rgb(1, 102, 94)',
+        line = dict(color = 'rgb(1, 102, 94)', width=3)
+    )
+))
+fig_bar.add_trace(go.Bar(
+    y = bar_y,
+    x = bar_x[1],
+    name = '중립',
+    orientation='h',
+    marker=dict(
+        color = 'rgb(135, 135, 135)',
+        line = dict(color = 'rgb(135, 135, 135)', width=3)
+    )
+))
+fig_bar.add_trace(go.Bar(
+    y = bar_y,
+    x = bar_x[2],
+    name = '부정',
+    orientation='h',
+    marker=dict(
+        color = 'rgb(172, 43, 36)',
+        line = dict(color = 'rgb(172, 43, 36)', width=3)
+    )
+))
+
+fig_bar.update_layout(
+    barmode='stack',
+    font=dict(family="NanumBarunGothic", size=16)
+    )
+
+BAR_PLOT = dcc.Loading(
+     id="loading-BAR-plot", children=[dcc.Graph(id="BAR", figure = fig_bar)], type="default"
+)
+
+COMMENT_SHOW = dash_table.DataTable(
+    data = latest_data_comment.to_dict('records'),
+    columns=[{'id': c, 'name': c} for c in latest_data_comment.columns]
+)
+BAR_PLOTS = [
+    dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스 주제별 감성 현황")),
+    dbc.Alert(
+        "Not enough data to render BAR plots, please adjust the filters",
+        id="no-data-alert-BAR",
+        color="warning",
+        style={"display": "none"},
+    ),
+    dbc.CardBody(
+        [
+            BAR_PLOT,
+            html.Hr(),
+            COMMENT_SHOW,
+        ]
+    ),
+]
+
+
+################################################################################################
 wordcloud_dropdown_day = dcc.Dropdown(id = "day", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[-1])
 wordcloud_dropdown_topic = dcc.Dropdown(id = "topic") 
 wordcloud_freqtable = dcc.Loading(id = "loading-frequencies", children = [dcc.Graph(id = "frequency_figure")], type="default")
@@ -450,8 +527,61 @@ TIMESERIES_PLOTS = [
     ),
 ]
 
+#####################################################################################################
+############################################ TIME SERIES ####################################################
+#5. 시계열 그래프
+
+fig_timeseries_comment = go.Figure()
+
+data_comment_for_timeseries = data_comment.copy()
+data_comment_for_timeseries['time2'] = data_comment_for_timeseries.time.str.slice(start = 0, stop = 10)
+data_comment_for_timeseries_agg = data_comment_for_timeseries.groupby(by = ['time2'], as_index = False).count()
+print(data_comment_for_timeseries_agg)
+
+fig_timeseries_comment.add_trace(
+    go.Scatter(
+    x = data_comment_for_timeseries_agg['time2'],
+    y = data_comment_for_timeseries_agg['press'],
+    name = '총 댓글 건수'
+))
 
 
+fig_timeseries_comment.update_xaxes(
+    rangeslider_visible=True,
+    rangeselector=dict(
+        buttons=list([
+            dict(count=1, label="1m", step="month", stepmode="backward"),
+            dict(count=6, label="6m", step="month", stepmode="backward"),
+            dict(count=1, label="YTD", step="year", stepmode="todate"),
+            dict(count=1, label="1y", step="year", stepmode="backward"),
+            dict(step="all")
+        ])
+    )
+)
+
+timeseries_comment_PLOT = dcc.Loading(
+     id="loading-timeseries_comment-plot", children=[dcc.Graph(id="timeseries_comment", figure = fig_timeseries_comment)], type="default"
+)
+timeseries_comment_PLOTS = [
+    dbc.CardHeader(html.H5("육군 관련 보도 댓글 시계열 그래프")),
+    dbc.Alert(
+        "Not enough data to render TIME SERIES plots, please adjust the filters",
+        id="no-data-alert-timeseries_comment",
+        color="warning",
+        style={"display": "none"},
+    ),
+    dbc.CardBody(
+        [
+           #timeseries_comment_dropdown_day,
+            html.P(
+                "아래쪽 탐색기의 양 끝 막대를 드래그하면 원하는 구간을 자세히 볼 수 있습니다. 위쪽의 그래프를 더블클릭하면 구간 설정이 리셋됩니다.",
+                className="mb-0",
+            ),
+            timeseries_comment_PLOT,
+            html.Hr()
+        ]
+    ),
+]
 
 
 
@@ -489,76 +619,7 @@ PIE_PLOTS = [
 ######################################################################################################
 
 ###########################################################################
-#1. 막대그래프
-latest_data = data[ (data.time == all_days[-1]) ]
-bar_y = [ '{}번째 주제:{}'.format(i, latest_data[latest_data.label == i].top3.iloc[0]) for i in np.sort(latest_data.label.unique())]
-bar_x = [[],[],[]]
 
-for i in np.sort(latest_data.label.unique()): 
-    latest_data_for_topic = latest_data[latest_data.label == i]
-    bar_x[0].append( len(latest_data_for_topic[latest_data_for_topic.sent_score > 0]) ) #pos
-    bar_x[1].append( len(latest_data_for_topic[latest_data_for_topic.sent_score == 0]) ) #neu
-    bar_x[2].append( len(latest_data_for_topic[latest_data_for_topic.sent_score < 0]) ) #neg
-
-#print(bar_y)
-#print(bar_x)
-
-fig_bar = go.Figure()
-fig_bar.add_trace(go.Bar(
-    y = bar_y,
-    x = bar_x[0],
-    name='긍정',
-    orientation='h',
-    marker=dict(
-        color = 'rgb(1, 102, 94)',
-        line = dict(color = 'rgb(1, 102, 94)', width=3)
-    )
-))
-fig_bar.add_trace(go.Bar(
-    y = bar_y,
-    x = bar_x[1],
-    name = '중립',
-    orientation='h',
-    marker=dict(
-        color = 'rgb(135, 135, 135)',
-        line = dict(color = 'rgb(135, 135, 135)', width=3)
-    )
-))
-fig_bar.add_trace(go.Bar(
-    y = bar_y,
-    x = bar_x[2],
-    name = '부정',
-    orientation='h',
-    marker=dict(
-        color = 'rgb(172, 43, 36)',
-        line = dict(color = 'rgb(172, 43, 36)', width=3)
-    )
-))
-
-fig_bar.update_layout(
-    barmode='stack',
-    font=dict(family="NanumBarunGothic", size=16)
-    )
-
-BAR_PLOT = dcc.Loading(
-     id="loading-BAR-plot", children=[dcc.Graph(id="BAR", figure = fig_bar)], type="default"
-)
-BAR_PLOTS = [
-    dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스 주제별 감성 현황")),
-    dbc.Alert(
-        "Not enough data to render BAR plots, please adjust the filters",
-        id="no-data-alert-BAR",
-        color="warning",
-        style={"display": "none"},
-    ),
-    dbc.CardBody(
-        [
-            BAR_PLOT,
-            html.Hr()
-            #LDA_TABLE,
-        ]
-    ),
-]
 ######################################################################
 BODY = dbc.Container(
     [
@@ -566,7 +627,9 @@ BODY = dbc.Container(
         dbc.Row([dbc.Col([dbc.Card(PIE_PLOTS)])], style={"marginTop": 50}),
         dbc.Row([dbc.Col([dbc.Card(WORDCLOUD_PLOTS)])], style={"marginTop": 50}),
         dbc.Row([dbc.Col([dbc.Card(LDA_PLOTS)])], style={"marginTop": 50}),
-        dbc.Row([dbc.Col([dbc.Card(TIMESERIES_PLOTS)])], style={"marginTop": 50})
+        dbc.Row([dbc.Col([dbc.Card(TIMESERIES_PLOTS)])], style={"marginTop": 50}),
+        dbc.Row([dbc.Col([dbc.Card(timeseries_comment_PLOTS)])], style={"marginTop": 50})
+        
         
     ],
     className="mt-12",
@@ -675,7 +738,7 @@ def filter_table_on_scatter_click(tsne_click):
         data_lda_table = data_today_clicked.to_dict("records")
         
         
-        comment_today_clicked = data_comment[data_comment['Document_No'] == int(selected_doc_no)].iloc[:,4:9]
+        comment_today_clicked = data_comment[data_comment['Document_No'] == int(selected_doc_no)].iloc[:,3:8]
         comment_today_clicked.columns = ['댓글', '좋아요', '싫어요', '작성시간', '답글']
         if len(comment_today_clicked) == 0:
             comment_today_clicked = comment_today_clicked.append(pd.DataFrame(['댓글 없음', '','','',''], columns = ['댓글', '좋아요', '싫어요', '작성시간', '답글']), ignore_index = True)
