@@ -210,7 +210,7 @@ NAVBAR = dbc.Navbar(
     dark=True,
     sticky="top",
 )
-#######1. 막대그래프
+###################################1. 막대그래프################################################################################
 latest_data = data[ (data.time == all_days[-1]) ]
 bar_y = [ '{}번째 주제:{}'.format(i, latest_data[latest_data.label == i].top3.iloc[0]) for i in np.sort(latest_data.label.unique())]
 bar_x = [[],[],[]]
@@ -220,14 +220,8 @@ for i in np.sort(latest_data.label.unique()):
     bar_x[1].append( len(latest_data_for_topic[latest_data_for_topic.sent_score == 0]) ) #neu
     bar_x[2].append( len(latest_data_for_topic[latest_data_for_topic.sent_score < 0]) ) #neg
 
-latest_data_comment = data_comment[data_comment.time.str.slice(start = 0, stop = 10) == all_days[-1] ]
-latest_data_comment = latest_data_comment.sort_values(by = 'like', ascending = False).iloc[:2, :]
-print(latest_data_comment)
 
 
-
-#print(bar_y)
-#print(bar_x)
 
 fig_bar = go.Figure()
 fig_bar.add_trace(go.Bar(
@@ -270,10 +264,7 @@ BAR_PLOT = dcc.Loading(
      id="loading-BAR-plot", children=[dcc.Graph(id="BAR", figure = fig_bar)], type="default"
 )
 
-COMMENT_SHOW = dash_table.DataTable(
-    data = latest_data_comment.to_dict('records'),
-    columns=[{'id': c, 'name': c} for c in latest_data_comment.columns]
-)
+
 BAR_PLOTS = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스 주제별 감성 현황")),
     dbc.Alert(
@@ -286,11 +277,41 @@ BAR_PLOTS = [
         [
             BAR_PLOT,
             html.Hr(),
-            COMMENT_SHOW,
+           
         ]
     ),
 ]
+################################################################################################
+latest_data_comment = data_comment[data_comment.time.str.slice(start = 0, stop = 10) == all_days[-1] ]
+latest_data_comment_top5 = latest_data_comment.sort_values(by = 'like', ascending = False).iloc[:5, :]
+latest_data_comment_bottom5 = latest_data_comment.sort_values(by = 'like', ascending = True).iloc[:5, :]
 
+COMMENT_TOP5_SHOW = dash_table.DataTable(
+    data = latest_data_comment_top5.to_dict('records'),
+    columns=[{'id': c, 'name': c} for c in latest_data_comment_top5.columns]
+)
+
+COMMENT_BOTTOM5_SHOW = dash_table.DataTable(
+    data = latest_data_comment_bottom5.to_dict('records'),
+    columns=[{'id': c, 'name': c} for c in latest_data_comment_bottom5.columns]
+)
+
+COMMENT_PLOTS = [
+    dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스에 달린 댓글 중 좋아요가 가장 많은 5개")),
+    dbc.Alert(
+        "Not enough data to render comment plots, please adjust the filters",
+        id="no-data-alert-comment",
+        color="warning",
+        style={"display": "none"},
+    ),
+    dbc.CardBody(
+        [
+            COMMENT_TOP5_SHOW,
+            html.Hr(),
+           
+        ]
+    ),
+]
 
 ################################################################################################
 wordcloud_dropdown_day = dcc.Dropdown(id = "day", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[-1])
