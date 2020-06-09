@@ -671,12 +671,36 @@ BODY = dbc.Container(
     className="mt-12",
 )
 #########################################################
-
+texttest = html.Div(
+children=[
+                        html.H4(className='what-is', children='What is Clustergram?'),
+                        html.P('Clustergram is a combination of a heatmap and '
+                               'dendrograms that allows you to display '
+                               'hierarchical clustering data. '
+                               'Clusters on the dendrograms are highlighted in '
+                               'one color if they comprise data points '
+                               'that share some minimal level of correlation.'),
+                        html.P('In the "Data" tab, you can select a preloaded '
+                               'dataset to display or, alternatively, upload one '
+                               'of your own. A sample dataset is also available '
+                               'for download in the tab.'),
+                        html.P('In the "Graph" tab, you can choose the '
+                               'dimension(s) along which clustering will be '
+                               'performed (row or column). You can also change '
+                               'the threshold that determines the point at which '
+                               'clusters are highlighted for the row and column '
+                               'dendrograms, and choose which rows and columns '
+                               'are used to compute the clustering.'),
+                        html.P('In addition, you can highlight specific clusters '
+                               'by adding annotations to the clustergram, and '
+                               'choose whether to show or hide the labels for the '
+                               'rows and/or columns.')
+                    ])
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
 app.layout = html.Div([
-    NAVBAR, BODY
+    NAVBAR, BODY,texttest
 ])
 
 server = app.server
@@ -836,4 +860,4 @@ def update_pie_plot(selected_day, selected_topic):
 
 
 if __name__ == '__main__': #이게 callback보다 앞에 와야 callback이 디버깅됨
-    app.run_server(debug = True)
+    app.run_server()
