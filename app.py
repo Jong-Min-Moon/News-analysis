@@ -284,7 +284,7 @@ BAR_PLOTS = [
 ################################################################################################
 latest_data_comment = data_comment[data_comment.time.str.slice(start = 0, stop = 10) == all_days[-1] ]
 latest_data_comment_top5 = latest_data_comment.sort_values(by = 'like', ascending = False).iloc[:5, :]
-latest_data_comment_bottom5 = latest_data_comment.sort_values(by = 'like', ascending = True).iloc[:5, :]
+latest_data_comment_bottom5 = latest_data_comment.sort_values(by = 'dislike', ascending = False).iloc[:5, :]
 
 COMMENT_TOP5_SHOW = dash_table.DataTable(
     data = latest_data_comment_top5.to_dict('records'),
@@ -296,7 +296,7 @@ COMMENT_BOTTOM5_SHOW = dash_table.DataTable(
     columns=[{'id': c, 'name': c} for c in latest_data_comment_bottom5.columns]
 )
 
-COMMENT_PLOTS = [
+COMMENT_TOP5_PLOTS = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스에 달린 댓글 중 좋아요가 가장 많은 5개")),
     dbc.Alert(
         "Not enough data to render comment plots, please adjust the filters",
@@ -306,9 +306,22 @@ COMMENT_PLOTS = [
     ),
     dbc.CardBody(
         [
-            COMMENT_TOP5_SHOW,
-            html.Hr(),
-           
+            COMMENT_TOP5_SHOW
+        ]
+    ),
+]
+
+COMMENT_BOTTOM5_PLOTS = [
+    dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스에 달린 댓글 중 싫어요가 가장 많은 5개")),
+    dbc.Alert(
+        "Not enough data to render comment plots, please adjust the filters",
+        id="no-data-alert-comment",
+        color="warning",
+        style={"display": "none"},
+    ),
+    dbc.CardBody(
+        [
+            COMMENT_BOTTOM5_SHOW
         ]
     ),
 ]
@@ -645,6 +658,8 @@ PIE_PLOTS = [
 BODY = dbc.Container(
     [
         dbc.Card(BAR_PLOTS),
+        dbc.Row([dbc.Col([dbc.Card(COMMENT_TOP5_PLOTS)])], style={"marginTop": 50}),
+        dbc.Row([dbc.Col([dbc.Card(COMMENT_BOTTOM5_PLOTS)])], style={"marginTop": 50}),
         dbc.Row([dbc.Col([dbc.Card(PIE_PLOTS)])], style={"marginTop": 50}),
         dbc.Row([dbc.Col([dbc.Card(WORDCLOUD_PLOTS)])], style={"marginTop": 50}),
         dbc.Row([dbc.Col([dbc.Card(LDA_PLOTS)])], style={"marginTop": 50}),
