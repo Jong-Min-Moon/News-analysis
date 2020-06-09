@@ -295,18 +295,45 @@ COMMENT_BOTTOM5_SHOW = dash_table.DataTable(
     data = latest_data_comment_bottom5.to_dict('records'),
     columns=[{'id': c, 'name': c} for c in latest_data_comment_bottom5.columns]
 )
-
+top1 = latest_data_comment_top5.iloc[:1, :]
+reply_press = top1.press.item()
+reply_title = top1.title.item()
+texttest = html.Div(
+children=[
+                        html.H4(children='[{}] {}'.format(reply_press, reply_title)),
+                        html.P('Clustergram is a combination of a heatmap anddendrograms that allows you to display '
+                               'hierarchical clustering data. '
+                               'Clusters on the dendrograms are highlighted in '
+                               'one color if they comprise data points '
+                               'that share some minimal level of correlation.'),
+                        html.P('In the "Data" tab, you can select a preloaded '
+                               'dataset to display or, alternatively, upload one '
+                               'of your own. A sample dataset is also available '
+                               'for download in the tab.'),
+                        html.P('In the "Graph" tab, you can choose the '
+                               'dimension(s) along which clustering will be '
+                               'performed (row or column). You can also change '
+                               'the threshold that determines the point at which '
+                               'clusters are highlighted for the row and column '
+                               'dendrograms, and choose which rows and columns '
+                               'are used to compute the clustering.'),
+                        html.P('In addition, you can highlight specific clusters '
+                               'by adding annotations to the clustergram, and '
+                               'choose whether to show or hide the labels for the '
+                               'rows and/or columns.')
+                    ])
 COMMENT_TOP5_PLOTS = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스에 달린 댓글 중 좋아요가 가장 많은 5개")),
     dbc.Alert(
         "Not enough data to render comment plots, please adjust the filters",
-        id="no-data-alert-comment",
+        id="no-data-alert-comment-top5",
         color="warning",
         style={"display": "none"},
     ),
     dbc.CardBody(
         [
-            COMMENT_TOP5_SHOW
+            COMMENT_TOP5_SHOW,
+            texttest
         ]
     ),
 ]
@@ -315,7 +342,7 @@ COMMENT_BOTTOM5_PLOTS = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스에 달린 댓글 중 싫어요가 가장 많은 5개")),
     dbc.Alert(
         "Not enough data to render comment plots, please adjust the filters",
-        id="no-data-alert-comment",
+        id="no-data-alert-comment-bottom5",
         color="warning",
         style={"display": "none"},
     ),
@@ -671,36 +698,12 @@ BODY = dbc.Container(
     className="mt-12",
 )
 #########################################################
-texttest = html.Div(
-children=[
-                        html.H4(className='what-is', children='What is Clustergram?'),
-                        html.P('Clustergram is a combination of a heatmap and '
-                               'dendrograms that allows you to display '
-                               'hierarchical clustering data. '
-                               'Clusters on the dendrograms are highlighted in '
-                               'one color if they comprise data points '
-                               'that share some minimal level of correlation.'),
-                        html.P('In the "Data" tab, you can select a preloaded '
-                               'dataset to display or, alternatively, upload one '
-                               'of your own. A sample dataset is also available '
-                               'for download in the tab.'),
-                        html.P('In the "Graph" tab, you can choose the '
-                               'dimension(s) along which clustering will be '
-                               'performed (row or column). You can also change '
-                               'the threshold that determines the point at which '
-                               'clusters are highlighted for the row and column '
-                               'dendrograms, and choose which rows and columns '
-                               'are used to compute the clustering.'),
-                        html.P('In addition, you can highlight specific clusters '
-                               'by adding annotations to the clustergram, and '
-                               'choose whether to show or hide the labels for the '
-                               'rows and/or columns.')
-                    ])
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 
 app.layout = html.Div([
-    NAVBAR, BODY,texttest
+    NAVBAR, BODY
 ])
 
 server = app.server
