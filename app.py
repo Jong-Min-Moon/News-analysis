@@ -304,16 +304,17 @@ reply_like = top1.like.item()
 reply_dislike = top1.dislike.item()
 reply_content = top1.content.item()
 
-texttest = html.Div(
+reply_header = html.Div(
 children=[
                         html.H4(children='[{}] {}'.format(reply_press, reply_title)),
-                        html.P('기사 주소: {}'.format(reply_url)),
-                        html.P('댓글 작성 시간: {}'.format(reply_title)),
-                        html.P('좋아요: {}개 / 싫어요: {}개'.format(reply_like, reply_dislike)),
-                        html.P('좋아요: {}개 / 싫어요: {}개'.format(reply_like, reply_dislike)),
-                        html.P(reply_content)
+                        html.P(children = '기사 주소: {}'.format(reply_url)),
+                        html.P('댓글 작성 시간: {}'.format(reply_time)),
+                        html.P('좋아요: {}개 / 싫어요: {}개'.format(reply_like, reply_dislike))
+                    ],  style = {'fontSize' : 8})
 
-                    ])
+reply_body = html.Div( html.P(reply_content))
+reply_split = html.Div( html.P('----------------------------------'))
+reply_one = [reply_header, reply_body, reply_split]
 COMMENT_TOP5_PLOTS = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스에 달린 댓글 중 좋아요가 가장 많은 5개")),
     dbc.Alert(
@@ -324,9 +325,9 @@ COMMENT_TOP5_PLOTS = [
     ),
     dbc.CardBody(
         [
-            COMMENT_TOP5_SHOW,
-            texttest
-        ]
+            
+            COMMENT_TOP5_SHOW
+        ] + reply_one
     ),
 ]
 
