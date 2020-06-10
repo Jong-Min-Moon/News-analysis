@@ -295,26 +295,31 @@ COMMENT_BOTTOM5_SHOW = dash_table.DataTable(
     data = latest_data_comment_bottom5.to_dict('records'),
     columns=[{'id': c, 'name': c} for c in latest_data_comment_bottom5.columns]
 )
-top1 = latest_data_comment_top5.iloc[:1, :]
-reply_press = top1.press.item()
-reply_title = top1.title.item()
-reply_url = top1.url.item()
-reply_time = top1.url.item()
-reply_like = top1.like.item()
-reply_dislike = top1.dislike.item()
-reply_content = top1.content.item()
 
-reply_header = html.Div(
-children=[
-                        html.H4(children='[{}] {}'.format(reply_press, reply_title)),
-                        html.P(children = '기사 주소: {}'.format(reply_url)),
-                        html.P('댓글 작성 시간: {}'.format(reply_time)),
-                        html.P('좋아요: {}개 / 싫어요: {}개'.format(reply_like, reply_dislike))
-                    ],  style = {'fontSize' : 8})
+replys_top5 = []
+for i, top1 in latest_data_comment_top5.iterrows():
+    
+    reply_press = top1.press
+    reply_title = top1.title
+    reply_url = top1.url
+    reply_time = top1.url
+    reply_like = top1.like
+    reply_dislike = top1.dislike
+    reply_content = top1.content
 
-reply_body = html.Div( html.P(reply_content))
-reply_split = html.Div( html.P('----------------------------------'))
-reply_one = [reply_header, reply_body, reply_split]
+    reply_header = html.Div(
+    children=[
+                            html.H4(children='[{}] {}'.format(reply_press, reply_title)),
+                            html.P(children = '기사 주소: {}'.format(reply_url)),
+                            html.P('댓글 작성 시간: {}'.format(reply_time)),
+                            html.P('좋아요: {}개 / 싫어요: {}개'.format(reply_like, reply_dislike))
+                        ],  style = {'fontSize' : 10})
+
+    reply_body = html.Div( html.P(reply_content))
+    reply_split = html.Div( html.P('--------------------------------------------------------------------'))
+    reply_one = [reply_header, reply_body, reply_split]
+    replys_top5 = replys_top5 + reply_one
+
 COMMENT_TOP5_PLOTS = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스에 달린 댓글 중 좋아요가 가장 많은 5개")),
     dbc.Alert(
@@ -323,13 +328,33 @@ COMMENT_TOP5_PLOTS = [
         color="warning",
         style={"display": "none"},
     ),
-    dbc.CardBody(
-        [
-            
-            COMMENT_TOP5_SHOW
-        ] + reply_one
-    ),
+    dbc.CardBody( replys_top5  ),
 ]
+
+
+replys_bottom5 = []
+for i, top1 in latest_data_comment_bottom5.iterrows():
+    
+    reply_press = top1.press
+    reply_title = top1.title
+    reply_url = top1.url
+    reply_time = top1.url
+    reply_like = top1.like
+    reply_dislike = top1.dislike
+    reply_content = top1.content
+
+    reply_header = html.Div(
+    children=[
+                            html.H4(children='[{}] {}'.format(reply_press, reply_title)),
+                            html.P(children = '기사 주소: {}'.format(reply_url)),
+                            html.P('댓글 작성 시간: {}'.format(reply_time)),
+                            html.P('좋아요: {}개 / 싫어요: {}개'.format(reply_like, reply_dislike))
+                        ],  style = {'fontSize' : 10})
+
+    reply_body = html.Div( html.P(reply_content))
+    reply_split = html.Div( html.P('--------------------------------------------------------------------'))
+    reply_one = [reply_header, reply_body, reply_split]
+    replys_bottom5 = replys_bottom5 + reply_one
 
 COMMENT_BOTTOM5_PLOTS = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스에 달린 댓글 중 싫어요가 가장 많은 5개")),
@@ -340,9 +365,9 @@ COMMENT_BOTTOM5_PLOTS = [
         style={"display": "none"},
     ),
     dbc.CardBody(
-        [
-            COMMENT_BOTTOM5_SHOW
-        ]
+        
+            replys_bottom5
+        
     ),
 ]
 

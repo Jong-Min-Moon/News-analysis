@@ -42,6 +42,9 @@ import shutil #파일 한번에 삭제
 # tokenize 함수를 정의합니다. 한국어 문장을 입력하면 형태소 단위로 분리하고, 
 # 불용어 및 특수 문자 등을 제거한 뒤, list로 반환합니다.
 
+with open('./korean_stopwords.txt', 'rb') as f:
+    stopwords = pickle.load(f)
+stopwords = set(stopwords)
 
 kiwi = Kiwi()
 print('kwi')
@@ -51,7 +54,7 @@ def tokenize(sent):
     res, score = kiwi.analyze(sent)[0] # 첫번째 결과를 사용
     return [word + ('다' if tag.startswith('V') else '') # 동사에는 '다'를 붙여줌
             for word, tag, _, _ in res
-            if not tag.startswith('E') and not tag.startswith('J') and not tag.startswith('S')] # 조사, 어미, 특수기호는 제거
+            if not tag.startswith('E') and not tag.startswith('J') and not tag.startswith('S') and word not in stopwords] # 조사, 어미, 특수기호는 제거
 
 def merge(mypath):
     file_list = os.listdir(mypath)
@@ -63,6 +66,7 @@ def merge(mypath):
         print(filename)
     
     return(data)
+
 
 def Do_LDA(df, n_topic, n_iter):
     df_with_tsne = df[df.content != 0].copy()
