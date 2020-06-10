@@ -302,7 +302,7 @@ for i, top1 in latest_data_comment_top5.iterrows():
     reply_press = top1.press
     reply_title = top1.title
     reply_url = top1.url
-    reply_time = top1.url
+    reply_time = top1.time
     reply_like = top1.like
     reply_dislike = top1.dislike
     reply_content = top1.content
@@ -338,7 +338,7 @@ for i, top1 in latest_data_comment_bottom5.iterrows():
     reply_press = top1.press
     reply_title = top1.title
     reply_url = top1.url
-    reply_time = top1.url
+    reply_time = top1.time
     reply_like = top1.like
     reply_dislike = top1.dislike
     reply_content = top1.content
