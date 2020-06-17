@@ -24,10 +24,10 @@
      </rect>
     </property>
     <property name="rowCount">
-     <number>20</number>
+     <number>100</number>
     </property>
     <property name="columnCount">
-     <number>3</number>
+     <number>4</number>
     </property>
     <row/>
     <row/>
@@ -49,6 +49,87 @@
     <row/>
     <row/>
     <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <row/>
+    <column/>
     <column/>
     <column/>
     <column/>
@@ -161,7 +242,7 @@
       <x>310</x>
       <y>550</y>
       <width>221</width>
-      <height>211</height>
+      <height>181</height>
      </rect>
     </property>
     <property name="title">
@@ -254,6 +335,19 @@
       <width>461</width>
       <height>711</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_8">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>750</y>
+      <width>131</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>데이터베이스에 저장</string>
     </property>
    </widget>
   </widget>
