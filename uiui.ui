@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1173</width>
-    <height>881</height>
+    <width>1648</width>
+    <height>931</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,9 +17,9 @@
    <widget class="QTableWidget" name="tableWidget">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>60</y>
-      <width>591</width>
+      <x>70</x>
+      <y>80</y>
+      <width>891</width>
       <height>471</height>
      </rect>
     </property>
@@ -27,7 +27,7 @@
      <number>100</number>
     </property>
     <property name="columnCount">
-     <number>4</number>
+     <number>6</number>
     </property>
     <row/>
     <row/>
@@ -129,16 +129,42 @@
     <row/>
     <row/>
     <row/>
-    <column/>
-    <column/>
-    <column/>
-    <column/>
+    <column>
+     <property name="text">
+      <string>idx</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>언론사</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>제목</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>기사작성일</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>감성점수</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>레이블</string>
+     </property>
+    </column>
    </widget>
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>40</y>
+      <x>90</x>
+      <y>60</y>
       <width>91</width>
       <height>16</height>
      </rect>
@@ -150,8 +176,8 @@
    <widget class="QLineEdit" name="lineEdit">
     <property name="geometry">
      <rect>
-      <x>200</x>
-      <y>550</y>
+      <x>260</x>
+      <y>630</y>
       <width>71</width>
       <height>20</height>
      </rect>
@@ -160,8 +186,8 @@
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>550</y>
+      <x>130</x>
+      <y>630</y>
       <width>121</width>
       <height>20</height>
      </rect>
@@ -173,8 +199,8 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>590</y>
+      <x>130</x>
+      <y>670</y>
       <width>161</width>
       <height>80</height>
      </rect>
@@ -212,8 +238,8 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>680</y>
+      <x>400</x>
+      <y>630</y>
       <width>101</width>
       <height>23</height>
      </rect>
@@ -225,8 +251,8 @@
    <widget class="QPushButton" name="pushButton_2">
     <property name="geometry">
      <rect>
-      <x>80</x>
-      <y>730</y>
+      <x>410</x>
+      <y>680</y>
       <width>75</width>
       <height>51</height>
      </rect>
@@ -239,8 +265,8 @@
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>550</y>
+      <x>560</x>
+      <y>620</y>
       <width>221</width>
       <height>181</height>
      </rect>
@@ -317,8 +343,8 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>680</x>
-      <y>40</y>
+      <x>740</x>
+      <y>60</y>
       <width>56</width>
       <height>12</height>
      </rect>
@@ -330,9 +356,9 @@
    <widget class="QTextBrowser" name="textBrowser">
     <property name="geometry">
      <rect>
-      <x>680</x>
-      <y>60</y>
-      <width>461</width>
+      <x>1070</x>
+      <y>80</y>
+      <width>541</width>
       <height>711</height>
      </rect>
     </property>
@@ -340,8 +366,8 @@
    <widget class="QPushButton" name="pushButton_8">
     <property name="geometry">
      <rect>
-      <x>320</x>
-      <y>750</y>
+      <x>850</x>
+      <y>670</y>
       <width>131</width>
       <height>41</height>
      </rect>
@@ -356,7 +382,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1173</width>
+     <width>1648</width>
      <height>21</height>
     </rect>
    </property>
