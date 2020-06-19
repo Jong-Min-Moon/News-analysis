@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1648</width>
+    <width>1450</width>
     <height>931</height>
    </rect>
   </property>
@@ -19,7 +19,7 @@
      <rect>
       <x>70</x>
       <y>80</y>
-      <width>891</width>
+      <width>971</width>
       <height>471</height>
      </rect>
     </property>
@@ -176,21 +176,27 @@
    <widget class="QLineEdit" name="lineEdit">
     <property name="geometry">
      <rect>
-      <x>260</x>
-      <y>630</y>
-      <width>71</width>
-      <height>20</height>
+      <x>130</x>
+      <y>620</y>
+      <width>91</width>
+      <height>31</height>
      </rect>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
-      <x>130</x>
-      <y>630</y>
-      <width>121</width>
+      <x>80</x>
+      <y>600</y>
+      <width>181</width>
       <height>20</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>나눔바른고딕</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>기사 수(정수만 입력)</string>
@@ -199,10 +205,10 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>130</x>
+      <x>90</x>
       <y>670</y>
-      <width>161</width>
-      <height>80</height>
+      <width>121</width>
+      <height>111</height>
      </rect>
     </property>
     <property name="title">
@@ -211,11 +217,17 @@
     <widget class="QRadioButton" name="radioButton">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>20</y>
+       <x>10</x>
+       <y>30</y>
        <width>90</width>
        <height>16</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>나눔바른고딕</family>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="text">
       <string>긍정</string>
@@ -224,11 +236,17 @@
     <widget class="QRadioButton" name="radioButton_2">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>50</y>
+       <x>10</x>
+       <y>70</y>
        <width>90</width>
        <height>16</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>나눔바른고딕</family>
+       <pointsize>12</pointsize>
+      </font>
      </property>
      <property name="text">
       <string>부정</string>
@@ -238,8 +256,8 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>400</x>
-      <y>630</y>
+      <x>360</x>
+      <y>600</y>
       <width>101</width>
       <height>23</height>
      </rect>
@@ -251,8 +269,8 @@
    <widget class="QPushButton" name="pushButton_2">
     <property name="geometry">
      <rect>
-      <x>410</x>
-      <y>680</y>
+      <x>360</x>
+      <y>690</y>
       <width>75</width>
       <height>51</height>
      </rect>
@@ -265,11 +283,17 @@
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>560</x>
-      <y>620</y>
-      <width>221</width>
-      <height>181</height>
+      <x>530</x>
+      <y>570</y>
+      <width>251</width>
+      <height>271</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>나눔바른고딕</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="title">
      <string>점수 매기기</string>
@@ -279,9 +303,20 @@
       <rect>
        <x>10</x>
        <y>20</y>
-       <width>91</width>
-       <height>23</height>
+       <width>231</width>
+       <height>41</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>나눔바른고딕</family>
+       <pointsize>12</pointsize>
+       <weight>50</weight>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background: rgb(85, 170, 0)</string>
      </property>
      <property name="text">
       <string>긍정으로 분류</string>
@@ -291,10 +326,13 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>50</y>
-       <width>91</width>
-       <height>23</height>
+       <y>70</y>
+       <width>231</width>
+       <height>41</height>
       </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background : rgb(243, 46, 92)</string>
      </property>
      <property name="text">
       <string>부정으로 분류</string>
@@ -304,10 +342,13 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>80</y>
-       <width>91</width>
-       <height>23</height>
+       <y>120</y>
+       <width>231</width>
+       <height>41</height>
       </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background: rgb(255, 255, 0)</string>
      </property>
      <property name="text">
       <string>중립으로 분류</string>
@@ -317,9 +358,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>110</y>
-       <width>75</width>
-       <height>23</height>
+       <y>170</y>
+       <width>231</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="text">
@@ -330,9 +371,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>140</y>
-       <width>131</width>
-       <height>23</height>
+       <y>220</y>
+       <width>231</width>
+       <height>41</height>
       </rect>
      </property>
      <property name="text">
@@ -343,7 +384,7 @@
    <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
-      <x>740</x>
+      <x>1070</x>
       <y>60</y>
       <width>56</width>
       <height>12</height>
@@ -362,18 +403,49 @@
       <height>711</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>나눔바른고딕</family>
+      <pointsize>13</pointsize>
+     </font>
+    </property>
    </widget>
    <widget class="QPushButton" name="pushButton_8">
     <property name="geometry">
      <rect>
-      <x>850</x>
-      <y>670</y>
-      <width>131</width>
-      <height>41</height>
+      <x>830</x>
+      <y>710</y>
+      <width>181</width>
+      <height>61</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>나눔바른고딕</family>
+      <pointsize>12</pointsize>
+     </font>
     </property>
     <property name="text">
      <string>데이터베이스에 저장</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_9">
+    <property name="geometry">
+     <rect>
+      <x>850</x>
+      <y>620</y>
+      <width>131</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>나눔바른고딕</family>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>뒤로 가기</string>
     </property>
    </widget>
   </widget>
@@ -382,7 +454,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1648</width>
+     <width>1450</width>
      <height>21</height>
     </rect>
    </property>

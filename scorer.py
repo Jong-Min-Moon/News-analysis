@@ -41,26 +41,26 @@ class MyWindow(QMainWindow, form_class):
         self.pushButton_6.clicked.connect(self.score_pass)
         self.pushButton_7.clicked.connect(self.score_delete)
         self.pushButton_8.clicked.connect(self.update_table)
+        self.pushButton_9.clicked.connect(self.backward)
 
     def get_articles(self):
         self.news = pd.read_sql('SELECT * FROM news WHERE sent_score * {} > 0 AND label IS NULL ORDER BY sent_score * {} DESC LIMIT {}'.format(self.article_getter['pos_neg'], self.article_getter['pos_neg'], self.article_getter['num_article']), con, index_col = 'idx')
         
         temp_news = self.news[['press', 'title', 'time', 'sent_score']]
         QMessageBox.about(self, "message", "기사를 가져왔습니다.")
-
+        self.Can_I_start = 1
         for i in range(100):
-            for j in range(4):
+            for j in range(6):
                 self.tableWidget.setItem(i, j, QTableWidgetItem(''))
         
             
 
         for i in range(self.article_getter['num_article']):
             self.tableWidget.setItem(i, 0, QTableWidgetItem(str(temp_news.index[i])))
-            self.tableWidget.setItem(i, 3, QTableWidgetItem(str(round(temp_news.iloc[i,3],3))))
+            self.tableWidget.setItem(i, 4, QTableWidgetItem(str(round(temp_news.iloc[i,3],3))))
             for j in range(3):
-                print(i, j)
                 this_item = temp_news.iloc[i,j]
-                self.tableWidget.setItem(i, j, QTableWidgetItem(this_item))
+                self.tableWidget.setItem(i, j+1, QTableWidgetItem(this_item))
     
     def lineEditChanged(self):
         try:
@@ -90,7 +90,7 @@ class MyWindow(QMainWindow, form_class):
             self.idx_now = self.idx_list[0]
             self.order_now = 0
             self.score_result = []
-            content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content']] )
+            content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content'].replace('육군', '*육군*') ] )
             self.textBrowser.setPlainText(content_now)
         else:
             QMessageBox.about(self, "message", "'기사 가져오기'를 먼저 수행하세요.")
@@ -103,6 +103,7 @@ class MyWindow(QMainWindow, form_class):
                 QMessageBox.about(self, "message", "모든 기사를 레이블링했습니다.")
             else:
                 self.score_result.append(1)
+                self.tableWidget.setItem(self.order_now, 5, QTableWidgetItem('긍정({})'.format(self.score_result[self.order_now])))
                 print(self.score_result)
                 #다음 기사로
                 self.order_now += 1
@@ -110,7 +111,7 @@ class MyWindow(QMainWindow, form_class):
                     QMessageBox.about(self, "message", "모든 기사를 레이블링했습니다.")
                 else:
                     self.idx_now = self.idx_list[self.order_now]
-                    content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content']] )
+                    content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content'].replace('육군', '*육군*')] )
                     self.textBrowser.setPlainText(content_now)
         else:
             QMessageBox.about(self, "message", "'점수 매기기 시작' 버튼을 먼저 눌러주세요.")
@@ -121,6 +122,7 @@ class MyWindow(QMainWindow, form_class):
                 QMessageBox.about(self, "message", "모든 기사를 레이블링했습니다.")
             else:
                 self.score_result.append(-1)
+                self.tableWidget.setItem(self.order_now, 5, QTableWidgetItem('부정({})'.format(self.score_result[self.order_now])))
                 print(self.score_result)
                 #다음 기사로
                 self.order_now += 1
@@ -128,7 +130,7 @@ class MyWindow(QMainWindow, form_class):
                     QMessageBox.about(self, "message", "모든 기사를 레이블링했습니다.")
                 else:
                     self.idx_now = self.idx_list[self.order_now]
-                    content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content']] )
+                    content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content'].replace('육군', '*육군*')] )
                     self.textBrowser.setPlainText(content_now)
         else:
             QMessageBox.about(self, "message", "'점수 매기기 시작' 버튼을 먼저 눌러주세요.")    
@@ -138,6 +140,7 @@ class MyWindow(QMainWindow, form_class):
                 QMessageBox.about(self, "message", "모든 기사를 레이블링했습니다.")
             else:
                 self.score_result.append(0)
+                self.tableWidget.setItem(self.order_now, 5, QTableWidgetItem('중립({})'.format(self.score_result[self.order_now])))
                 print(self.score_result)
                 #다음 기사로
                 self.order_now += 1
@@ -145,7 +148,7 @@ class MyWindow(QMainWindow, form_class):
                     QMessageBox.about(self, "message", "모든 기사를 레이블링했습니다.")
                 else:
                     self.idx_now = self.idx_list[self.order_now]
-                    content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content']] )
+                    content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content'].replace('육군', '*육군*')] )
                     self.textBrowser.setPlainText(content_now)
         else:
             QMessageBox.about(self, "message", "'점수 매기기 시작' 버튼을 먼저 눌러주세요.")    
@@ -156,6 +159,7 @@ class MyWindow(QMainWindow, form_class):
                 QMessageBox.about(self, "message", "모든 기사를 레이블링했습니다.")
             else:
                 self.score_result.append(2)
+                self.tableWidget.setItem(self.order_now, 5, QTableWidgetItem('보류({})'.format(self.score_result[self.order_now])))
                 print(self.score_result)
                 #다음 기사로
                 self.order_now += 1
@@ -163,7 +167,7 @@ class MyWindow(QMainWindow, form_class):
                     QMessageBox.about(self, "message", "모든 기사를 레이블링했습니다.")
                 else:
                     self.idx_now = self.idx_list[self.order_now]
-                    content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content']] )
+                    content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content'].replace('육군', '*육군*')] )
                     self.textBrowser.setPlainText(content_now)
         else:
             QMessageBox.about(self, "message", "'점수 매기기 시작' 버튼을 먼저 눌러주세요.")    
@@ -174,6 +178,7 @@ class MyWindow(QMainWindow, form_class):
                 QMessageBox.about(self, "message", "모든 기사를 레이블링했습니다.")
             else:
                 self.score_result.append(3)
+                self.tableWidget.setItem(self.order_now, 5, QTableWidgetItem('삭제({})'.format(self.score_result[self.order_now])))
                 print(self.score_result)
                 #다음 기사로
                 self.order_now += 1
@@ -181,7 +186,7 @@ class MyWindow(QMainWindow, form_class):
                     QMessageBox.about(self, "message", "모든 기사를 레이블링했습니다.")
                 else:
                     self.idx_now = self.idx_list[self.order_now]
-                    content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content']] )
+                    content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content'].replace('육군', '*육군*')] )
                     self.textBrowser.setPlainText(content_now)
         else:
             QMessageBox.about(self, "message", "'점수 매기기 시작' 버튼을 먼저 눌러주세요.")    
@@ -190,7 +195,6 @@ class MyWindow(QMainWindow, form_class):
     def update_table(self):
         case_query = ''
         for i in range(len(self.idx_list)):
-            self.tableWidget.setItem(i, 5, QTableWidgetItem(str(self.score_result[i])))
             case_query = case_query + " WHEN idx = {} THEN {}".format(self.idx_list[i], self.score_result[i] )
             #sql_query = "UPDATE news SET label = '{}' WHERE idx = {}".format(self.score_result[i], self.idx_list[i])
             #sql_query = "UPDATE news SET label = '{}' WHERE idx = {}".format(, 
@@ -201,6 +205,25 @@ class MyWindow(QMainWindow, form_class):
             # 전체 내역을 다시 출력하여 확인해본다.
         print(f'{cs.rowcount} rows are updated.')
         con.commit()
+
+ ################################# 뒤로 가기 버튼 ###########################################
+    def backward(self):
+        if self.Can_I_score == 1:
+            if self.order_now >= self.article_getter['num_article']:
+                QMessageBox.about(self, "message", "모든 기사를 레이블링했습니다.")
+            else:
+                self.score_result.pop()
+                self.order_now -= 1
+                self.idx_now = self.idx_list[self.order_now]
+                
+                self.tableWidget.setItem(self.order_now, 5, QTableWidgetItem('다시 매기기'))
+                #이전 기사로
+                
+                content_now = '\n'.join( ['인덱스:' + str(self.idx_now), str(self.order_now + 1) + '번째 기사', self.news.loc[self.idx_now, 'title'], self.news.loc[self.idx_now, 'time'],  self.news.loc[self.idx_now, 'content'].replace('육군', '*육군*')] )
+                self.textBrowser.setPlainText(content_now)
+        else:
+            QMessageBox.about(self, "message", "'점수 매기기 시작' 버튼을 먼저 눌러주세요.")    
+
 #################################################################################
 if __name__ == "__main__":
     app = QApplication(sys.argv)
