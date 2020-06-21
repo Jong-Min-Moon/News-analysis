@@ -211,59 +211,76 @@ NAVBAR = dbc.Navbar(
     sticky="top",
 )
 ###################################1. 막대그래프################################################################################
+def barstack(selected_day):
+    df= data[ (data.time == selected_day) ]
+
+    bar_y = [ '{}번째 주제:{}'.format(i, df[df.label == i].top3.iloc[0]) for i in np.sort(df.label.unique())]
+    bar_x = [[],[],[]]
+    for i in np.sort(df.label.unique()): 
+        df_for_topic = df[df.label == i]
+        bar_x[0].append( len(df_for_topic[df_for_topic.sent_score > 0]) ) #pos
+        bar_x[1].append( len(df_for_topic[df_for_topic.sent_score == 0]) ) #neu
+        bar_x[2].append( len(df_for_topic[df_for_topic.sent_score < 0]) ) #neg
+
+
+    fig_bar = go.Figure()
+    fig_bar.add_trace(go.Bar(
+        y = bar_y,
+        x = bar_x[0],
+        name='긍정',
+        orientation='h',
+        marker=dict(
+            color = 'rgb(1, 102, 94)',
+            line = dict(color = 'rgb(1, 102, 94)', width=3)
+        )
+    ))
+    fig_bar.add_trace(go.Bar(
+        y = bar_y,
+        x = bar_x[1],
+        name = '중립',
+        orientation='h',
+        marker=dict(
+            color = 'rgb(135, 135, 135)',
+            line = dict(color = 'rgb(135, 135, 135)', width=3)
+        )
+    ))
+    fig_bar.add_trace(go.Bar(
+        y = bar_y,
+        x = bar_x[2],
+        name = '부정',
+        orientation='h',
+        marker=dict(
+            color = 'rgb(172, 43, 36)',
+            line = dict(color = 'rgb(172, 43, 36)', width=3)
+        )
+    ))
+
+    fig_bar.update_layout(
+        barmode='stack',
+        font=dict(family="NanumBarunGothic", size=16),
+        annotations=[
+        dict(
+            x=bar_x[0],
+            y=5,
+            xref="x",
+            yref="y",
+            text="dict Text",
+            showarrow=True,
+            arrowhead=7,
+            ax=0,
+            ay=-40
+        )
+    ]
+        )
+    
+    
+    return fig_bar
+
 barstack_dropdown_day = dcc.Dropdown(id = "batstack_day", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[-1])
 
-latest_data = data[ (data.time == all_days[-1]) ]
-bar_y = [ '{}번째 주제:{}'.format(i, latest_data[latest_data.label == i].top3.iloc[0]) for i in np.sort(latest_data.label.unique())]
-bar_x = [[],[],[]]
-for i in np.sort(latest_data.label.unique()): 
-    latest_data_for_topic = latest_data[latest_data.label == i]
-    bar_x[0].append( len(latest_data_for_topic[latest_data_for_topic.sent_score > 0]) ) #pos
-    bar_x[1].append( len(latest_data_for_topic[latest_data_for_topic.sent_score == 0]) ) #neu
-    bar_x[2].append( len(latest_data_for_topic[latest_data_for_topic.sent_score < 0]) ) #neg
-
-
-
-
-fig_bar = go.Figure()
-fig_bar.add_trace(go.Bar(
-    y = bar_y,
-    x = bar_x[0],
-    name='긍정',
-    orientation='h',
-    marker=dict(
-        color = 'rgb(1, 102, 94)',
-        line = dict(color = 'rgb(1, 102, 94)', width=3)
-    )
-))
-fig_bar.add_trace(go.Bar(
-    y = bar_y,
-    x = bar_x[1],
-    name = '중립',
-    orientation='h',
-    marker=dict(
-        color = 'rgb(135, 135, 135)',
-        line = dict(color = 'rgb(135, 135, 135)', width=3)
-    )
-))
-fig_bar.add_trace(go.Bar(
-    y = bar_y,
-    x = bar_x[2],
-    name = '부정',
-    orientation='h',
-    marker=dict(
-        color = 'rgb(172, 43, 36)',
-        line = dict(color = 'rgb(172, 43, 36)', width=3)
-    )
-))
-
-fig_bar.update_layout(
-    barmode='stack',
-    font=dict(family="NanumBarunGothic", size=16)
-    )
 
 BAR_PLOT = dcc.Loading(
-     id="loading-BAR-plot", children=[dcc.Graph(id="BAR", figure = fig_bar)], type="default"
+     id="loading-BAR-plot", children=[dcc.Graph(id="BAR", figure = barstack('2020.06.04'))], type="default"
 )
 
 
@@ -283,6 +300,8 @@ BAR_PLOTS = [
         ]
     ),
 ]
+
+
 ################################################################################################
 latest_data_comment = data_comment[data_comment.time.str.slice(start = 0, stop = 10) == all_days[-1] ]
 latest_data_comment_top5 = latest_data_comment.sort_values(by = 'like', ascending = False).iloc[:5, :]
