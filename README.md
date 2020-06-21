@@ -6,6 +6,15 @@
 * 터미널 재시작
 * python extension
 * git checkout --track origin/heroku
+
+* pip 미러 변경(사지방에서)
+mkdir ~/.pip
+cat <<EOF > ~/.pip/pip.conf
+ [global]
+ index-url = http://mirror.kakao.com/pypi/simple
+ trusted-host=mirror.kakao.com
+EOF
+
 * pip install -r requirements.txt
 
 

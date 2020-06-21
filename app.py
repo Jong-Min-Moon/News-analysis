@@ -211,6 +211,8 @@ NAVBAR = dbc.Navbar(
     sticky="top",
 )
 ###################################1. 막대그래프################################################################################
+barstack_dropdown_day = dcc.Dropdown(id = "batstack_day", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[-1])
+
 latest_data = data[ (data.time == all_days[-1]) ]
 bar_y = [ '{}번째 주제:{}'.format(i, latest_data[latest_data.label == i].top3.iloc[0]) for i in np.sort(latest_data.label.unique())]
 bar_x = [[],[],[]]
@@ -274,7 +276,7 @@ BAR_PLOTS = [
         style={"display": "none"},
     ),
     dbc.CardBody(
-        [
+        [   barstack_dropdown_day,
             BAR_PLOT,
             html.Hr(),
            
