@@ -30,7 +30,7 @@ if __name__ == '__main__':
         LDA_today, NN_table = work.Do_LDA(texts_sent, 6, 4000)
 
         #NN_table.to_sql('NN', con, if_exists = 'append', index = False)
-        LDA_today.to_sql('LDA', con, if_exists = 'append', index = False)
+        LDA_today.astype(str).to_sql('LDA', con, if_exists = 'append', index = False)
         #댓글
         #today_crawl.getNC(0)
         #today_crawl.NC.to_sql('NC', con, if_exists = 'append', index = False)
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         #con.commit()
 
     # schedule.every().day.at("23:50:00").do(job1)
-    job1('2020-06-20')
+    job1('2020-06-21')
     # from pprint import pprint
 
     # print("Job 확인")

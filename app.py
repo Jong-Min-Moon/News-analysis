@@ -21,7 +21,7 @@ import sqlite3
 con = sqlite3.connect('./rokanews.db')
 data = pd.read_sql('SELECT * FROM NN', con)
 data_comment = pd.read_sql('SELECT * FROM NC', con)
-
+data_topic = pd.read_sql('SELECT * FROM LDA', con)
 
 all_days = np.sort(data.time.unique())
 data_sent_timeseries = pd.DataFrame()

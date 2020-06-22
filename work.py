@@ -106,9 +106,10 @@ def Do_LDA(df, n_topic, n_iter):
     today = df.time.iloc[0]
 
     for i in range(n_topic):
-        topic = list(zip(model.vocabs, model.get_topic_word_dist(i)))
+        topic = list(zip(model.vocabs, [ round(elem, 6) for elem in model.get_topic_word_dist(i) ] ))
         topic.sort(key = lambda x: -x[1])
         topic = topic[:30]
+        # topic = ['.%6f' % float(elem) for elem in topic]
         top3 = '/ '.join(item[0] for item in topic[:3])
        
         temp_series = topic + [today, str(i), top3]
@@ -302,7 +303,7 @@ class Crawler():
 
                         df = df.append(pd.DataFrame([[press, title, url, content, like, dislike, time, re_reply]], columns=['press', 'title', 'url', 'content', 'like', 'dislike', 'time', 're_reply' ]), ignore_index=True)
             
-        df.to_csv( './NC/naver_comment_{}_{}.csv'.format(self.query, self.d_range[j]) ,index=False)
+        #df.to_csv( './NC/naver_comment_{}_{}.csv'.format(self.query, self.d_range[j]) ,index=False)
         self.NC = df
         print('총 {}개의 기사에서 {}개의 네이버 기사(댓글 달기 가능)를 가져옴'.format( len(urls_table), len(df) ) )
         browser.quit() 
