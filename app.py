@@ -15,26 +15,12 @@ from wordcloud import WordCloud
 import matplotlib.colors as mcolors
 
 import os #파일 및 폴더 관리
-
+import sqlite3
 
 ######################### DATA #########################
-def merge(mypath):
-    file_list = os.listdir(mypath)
-    file_list.sort()
-
-    data = pd.read_csv( mypath + '/' + file_list[0], encoding='utf-8-sig')
-    for filename in file_list[1:]:
-        data = data.append(pd.read_csv(mypath + '/' + filename, encoding='utf-8-sig'), ignore_index=True)
-        print(filename)
-    
-    return(data)
-
-data = merge('./NN')
-data_topic = merge('./LDAs')
-data['Document_No'] = np.arange(0, len(data))
-data_comment = merge('./NC')
-data_comment = pd.merge(data_comment, data[['url', 'Document_No']], how = 'left', on = 'url')
-
+con = sqlite3.connect('./rokanews.db')
+data = pd.read_sql('SELECT * FROM NN', con)
+data_comment = pd.read_sql('SELECT * FROM NC', con)
 
 
 all_days = np.sort(data.time.unique())
@@ -49,6 +35,109 @@ for YMD in all_days:
 data_sent_timeseries.columns = ['time', 'pos', 'neu', 'neg', 'total']
 
 ######################### FUCNTIONS #########################
+def barstack(selected_day):
+    df= data[ (data.time == selected_day) ]
+
+    top_labels = ['긍정', '중립', '부정']
+
+    colors = ['rgb(1, 102, 94)', 'rgb(135, 135, 135)', 'rgb(172, 43, 36)']
+
+    x_data = []
+    for i in np.sort(df.label.unique()):
+        row = [] #row 하나가 주제 하나
+        df_for_topic = df[df.label == i]
+        row.append( len(df_for_topic[df_for_topic.sent_score > 0]) ) #pos
+        row.append( len(df_for_topic[df_for_topic.sent_score == 0]) ) #neu
+        row.append( len(df_for_topic[df_for_topic.sent_score < 0]) ) #neg
+        x_data.append(row)
+    y_data = [ '{}번째 주제:{}'.format(i, df[df.label == i].top3.iloc[0]) for i in np.sort(df.label.unique())]
+
+    fig = go.Figure()
+
+    for i in range(0, len(x_data[0])): #긍정, 중립, 부정
+        for xd, yd in zip(x_data, y_data):
+            fig.add_trace(go.Bar(
+                x=[xd[i]], y=[yd],
+                orientation='h',
+                hovertext = selected_day + '-' + yd[0],
+                marker=dict(
+                    color=colors[i],
+                    line=dict(color='rgb(248, 248, 249)', width=1)
+                )
+            ))
+
+    fig.update_layout(
+        xaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+            domain=[0.15, 1]
+        ),
+        yaxis=dict(
+            showgrid=False,
+            showline=False,
+            showticklabels=False,
+            zeroline=False,
+        ),
+        barmode='stack',
+        paper_bgcolor='rgb(248, 248, 255)',
+        plot_bgcolor='rgb(248, 248, 255)',
+        margin=dict(l=120, r=10, t=140, b=80),
+        showlegend=False,
+    )
+
+    annotations = []
+
+    for yd, xd in zip(y_data, x_data):
+        # labeling the y-axis
+        annotations.append(dict(xref='paper', yref='y',
+                                x=0.14, y=yd,
+                                xanchor='right',
+                                text=str(yd),
+                                font=dict(family='Arial', size=14,
+                                        color='rgb(67, 67, 67)'),
+                                showarrow=False, align='right'))
+        # labeling the first percentage of each bar (x_axis)
+        annotations.append(dict(xref='x', yref='y',
+                                x=xd[0] / 2, y=yd,
+                                text=str(xd[0]) + '%',
+                                font=dict(family='Arial', size=14,
+                                        color='rgb(248, 248, 255)'),
+                                showarrow=False))
+        # labeling the first Likert scale (on the top)
+        if yd == y_data[-1]:
+            annotations.append(dict(xref='x', yref='paper',
+                                    x=xd[0] / 2, y=1.1,
+                                    text=top_labels[0],
+                                    font=dict(family='Arial', size=14,
+                                            color='rgb(67, 67, 67)'),
+                                    showarrow=False))
+        space = xd[0]
+        for i in range(1, len(xd)):
+                # labeling the rest of percentages for each bar (x_axis)
+                annotations.append(dict(xref='x', yref='y',
+                                        x=space + (xd[i]/2), y=yd,
+                                        text=str(xd[i]) + '%',
+                                        font=dict(family='Arial', size=14,
+                                                color='rgb(248, 248, 255)'),
+                                        showarrow=False))
+                # labeling the Likert scale
+                if yd == y_data[-1]:
+                    annotations.append(dict(xref='x', yref='paper',
+                                            x=space + (xd[i]/2), y=1.1,
+                                            text=top_labels[i],
+                                            font=dict(family='Arial', size=14,
+                                                    color='rgb(67, 67, 67)'),
+                                            showarrow=False))
+                space += xd[i]
+
+    fig.update_layout(annotations=annotations)
+    
+    
+    return fig
+
+
 def plotly_wordcloud(data_frame):
     """A wonderful function that returns figure data for three equally
     wonderful plots: wordcloud, frequency histogram and treemap"""
@@ -167,7 +256,7 @@ def populate_lda_scatter(data_input):
                 x=df_topic[bools[abool]]["x"],
                 y=df_topic[bools[abool]]["y"],
                 mode="markers",
-                hovertext = df_topic['Document_No'].astype('str') + '@' + df_topic.press + '@' + df_topic.title,
+                hovertext = df_topic['doc_id'].astype('str') + '@' + df_topic.press + '@' + df_topic.title,
                 marker_symbol = markers_list[i],
                 opacity=0.6,
                 marker=dict(
@@ -203,7 +292,7 @@ NAVBAR = dbc.Navbar(
                 align="center",
                 no_gutters=True,
             ),
-            href="https://plot.ly",
+            
         )
     ],
     color="dark",
@@ -211,76 +300,57 @@ NAVBAR = dbc.Navbar(
     sticky="top",
 )
 ###################################1. 막대그래프################################################################################
-def barstack(selected_day):
-    df= data[ (data.time == selected_day) ]
 
-    bar_y = [ '{}번째 주제:{}'.format(i, df[df.label == i].top3.iloc[0]) for i in np.sort(df.label.unique())]
-    bar_x = [[],[],[]]
-    for i in np.sort(df.label.unique()): 
-        df_for_topic = df[df.label == i]
-        bar_x[0].append( len(df_for_topic[df_for_topic.sent_score > 0]) ) #pos
-        bar_x[1].append( len(df_for_topic[df_for_topic.sent_score == 0]) ) #neu
-        bar_x[2].append( len(df_for_topic[df_for_topic.sent_score < 0]) ) #neg
-
-
-    fig_bar = go.Figure()
-    fig_bar.add_trace(go.Bar(
-        y = bar_y,
-        x = bar_x[0],
-        name='긍정',
-        orientation='h',
-        marker=dict(
-            color = 'rgb(1, 102, 94)',
-            line = dict(color = 'rgb(1, 102, 94)', width=3)
-        )
-    ))
-    fig_bar.add_trace(go.Bar(
-        y = bar_y,
-        x = bar_x[1],
-        name = '중립',
-        orientation='h',
-        marker=dict(
-            color = 'rgb(135, 135, 135)',
-            line = dict(color = 'rgb(135, 135, 135)', width=3)
-        )
-    ))
-    fig_bar.add_trace(go.Bar(
-        y = bar_y,
-        x = bar_x[2],
-        name = '부정',
-        orientation='h',
-        marker=dict(
-            color = 'rgb(172, 43, 36)',
-            line = dict(color = 'rgb(172, 43, 36)', width=3)
-        )
-    ))
-
-    fig_bar.update_layout(
-        barmode='stack',
-        font=dict(family="NanumBarunGothic", size=16),
-        annotations=[
-        dict(
-            x=bar_x[0],
-            y=5,
-            xref="x",
-            yref="y",
-            text="dict Text",
-            showarrow=True,
-            arrowhead=7,
-            ax=0,
-            ay=-40
-        )
-    ]
-        )
-    
-    
-    return fig_bar
 
 barstack_dropdown_day = dcc.Dropdown(id = "batstack_day", options = [ {"label": YMD, "value": YMD} for YMD in all_days ], value = all_days[-1])
 
+barstack_comment_TABLE = html.Div(
+    id="barstack-comment-table-block",
+    children=[
+        dcc.Loading(
+            id="loading-barstack-comment-table",
+            children=[
+                dash_table.DataTable(
+                    id="barstack-comment-table",
+                    style_cell_conditional=[
+                        {
+                            "if": {"column_id": "text"},
+                            "textAlign": "left",
+                            "whiteSpace": "normal",
+                            "height": "auto",
+                            "min-width": "80%",
+                        }
+                    ],
+                    style_data_conditional=[
+                        {
+                            "if": {"row_index": "odd"},
+                            "backgroundColor": "rgb(243, 246, 251)",
+                        }
+                    ],
+                    style_cell={
+                        "padding": "16px",
+                        "whiteSpace": "normal",
+                        "height": "auto",
+                        "max-width": "0",
+                    },
+                    style_header={"backgroundColor": "white", "fontWeight": "bold"},
+                    style_data={"whiteSpace": "normal", "height": "auto"},
+                    filter_action="native",
+                    page_action="native",
+                    page_current=0,
+                    page_size=5,
+                    columns=[],
+                    data=[],
+                )
+            ],
+            type="default",
+        )
+    ],
+    style={"display": "none"},
+)
 
 BAR_PLOT = dcc.Loading(
-     id="loading-BAR-plot", children=[dcc.Graph(id="BAR", figure = barstack('2020.06.04'))], type="default"
+     id="loading-BAR-plot", children=[dcc.Graph(id="BAR")], type="default"
 )
 
 
@@ -296,10 +366,11 @@ BAR_PLOTS = [
         [   barstack_dropdown_day,
             BAR_PLOT,
             html.Hr(),
-           
+            barstack_comment_TABLE
         ]
     ),
 ]
+
 
 
 ################################################################################################
@@ -751,6 +822,66 @@ server = app.server
 
 ################################################################################
 #CALLBACKS
+
+
+################################################################################
+#BARSTACK
+
+#1. 주제별 감성 bar 그래프 날짜 설정
+@app.callback(
+    Output('BAR', 'figure'),
+    [Input('batstack_day', 'value')])
+def set_barstack_for_selected_day(selected_day):
+    return barstack(selected_day)
+
+
+#2. 
+@app.callback(
+    [
+        Output("barstack-comment-table", "data"),
+        Output("barstack-comment-table", "columns"),
+        Output("barstack-comment-table-block", "style"),
+    ],
+    [Input("BAR", "clickData"),
+     Input('batstack_day', 'value')
+    ]
+)
+def filter_table_on_bar_click(bar_click, day):
+    """ TODO """
+    if bar_click is not None:
+        print(bar_click['points'][0]['y'][0])
+        print(day)
+        # click_item = str(bar_click["points"][0]["hovertext"]).split('-')
+        # selected_day = click_item[0]
+        # selected_topic = click_item[1]
+        
+        # print(selected_day, selected_topic)
+        
+        return ([],[],[])
+    else:
+        return ([],[],[])
+    #     data_today_clicked = data[data['doc_id'] == int(selected_doc_no)].T
+    #     data_today_clicked.reset_index(drop = False, inplace = True)
+    #     data_today_clicked.columns = ['item', 'text']
+    #     columns_news = [{"name": 'item', "id": 'item'}, {"name": 'text', "id": 'text'}]
+    #     data_lda_table = data_today_clicked.to_dict("records")
+        
+        
+    #     comment_today_clicked = data_comment[data_comment['doc_id'] == int(selected_doc_no)].iloc[:,3:8]
+    #     comment_today_clicked.columns = ['댓글', '좋아요', '싫어요', '작성시간', '답글']
+    #     if len(comment_today_clicked) == 0:
+    #         comment_today_clicked = comment_today_clicked.append(pd.DataFrame(['댓글 없음', '','','',''], columns = ['댓글', '좋아요', '싫어요', '작성시간', '답글']), ignore_index = True)
+        
+    #     columns_comment = [{"name": i, "id": i} for i in comment_today_clicked.columns]
+    #     comment_table = comment_today_clicked.to_dict("records")
+
+    #     return (data_lda_table, columns_news,  {"display": "block"} , comment_table, columns_comment, {"display": "block"})
+    # else:
+    #     return ( [], [], {"display": "none"} , [], [], {"display": "none"})
+
+
+
+########################################################################################################################
 @app.callback(
     [Output("topic", "options")],
     [Input("day", "value")]
@@ -833,14 +964,14 @@ def filter_table_on_scatter_click(tsne_click):
         selected_title = click_item[2]
         
         
-        data_today_clicked = data[data['Document_No'] == int(selected_doc_no)].T
+        data_today_clicked = data[data['doc_id'] == int(selected_doc_no)].T
         data_today_clicked.reset_index(drop = False, inplace = True)
         data_today_clicked.columns = ['item', 'text']
         columns_news = [{"name": 'item', "id": 'item'}, {"name": 'text', "id": 'text'}]
         data_lda_table = data_today_clicked.to_dict("records")
         
         
-        comment_today_clicked = data_comment[data_comment['Document_No'] == int(selected_doc_no)].iloc[:,3:8]
+        comment_today_clicked = data_comment[data_comment['doc_id'] == int(selected_doc_no)].iloc[:,3:8]
         comment_today_clicked.columns = ['댓글', '좋아요', '싫어요', '작성시간', '답글']
         if len(comment_today_clicked) == 0:
             comment_today_clicked = comment_today_clicked.append(pd.DataFrame(['댓글 없음', '','','',''], columns = ['댓글', '좋아요', '싫어요', '작성시간', '답글']), ignore_index = True)
@@ -902,4 +1033,4 @@ def update_pie_plot(selected_day, selected_topic):
 
 
 if __name__ == '__main__': #이게 callback보다 앞에 와야 callback이 디버깅됨
-    app.run_server()
+    app.run_server(debug = True)

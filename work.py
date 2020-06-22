@@ -38,7 +38,7 @@ import math #반올림
 import datetime
 import os #파일 및 폴더 관리
 import shutil #파일 한번에 삭제
-
+import pickle
 # tokenize 함수를 정의합니다. 한국어 문장을 입력하면 형태소 단위로 분리하고, 
 # 불용어 및 특수 문자 등을 제거한 뒤, list로 반환합니다.
 
@@ -115,7 +115,7 @@ def Do_LDA(df, n_topic, n_iter):
         LDA_today = LDA_today.append(pd.Series(temp_series), ignore_index = True)
 
     LDA_today.columns = ['word{}'.format(i) for i in range(30)]+ ['time', 'label', 'top3']
-    LDA_today.to_csv( 'D:/crawling/News-analysis/LDAs/LDA_{}.csv'.format(today),index=False, encoding='utf-8-sig')  
+    #LDA_today.to_csv( 'D:/crawling/News-analysis/LDAs/LDA_{}.csv'.format(today),index=False, encoding='utf-8-sig')  
       
 
     #T-SNE 정보를 원본 데이터프레임에 추가
@@ -141,8 +141,8 @@ def Do_LDA(df, n_topic, n_iter):
     top3_to_merge = LDA_today[['label', 'top3']].copy()
     top3_to_merge.label = top3_to_merge.label.astype('int64')
     df_with_tsne = pd.merge(df_with_tsne, top3_to_merge, on = 'label', how = 'left')
-    df_with_tsne.to_csv('D:/crawling/News-analysis/NN/NN_{}.csv'.format(today),index=False, encoding='utf-8-sig')
-
+    #df_with_tsne.to_csv('D:/crawling/News-analysis/NN/NN_{}.csv'.format(today),index=False, encoding='utf-8-sig')
+    return LDA_today, df_with_tsne
     
 
 class Crawler():
@@ -247,10 +247,9 @@ class Crawler():
         df = df.drop('v1', axis = 1)
         self.NC_urls[i] =  df   
     
-        df.to_csv( self.crawl_objs['NC'][2] +'/naver_comment_url{}_{}.csv'.format(self.query, dt),index=False)
-        #df.to_csv( self.root +'/NC/naver_comment_url_{}_{}.csv'.format(self.query, dt),index=False)
+        #df.to_csv( self.crawl_objs['NC'][2] +'/naver_comment_url{}_{}.csv'.format(self.query, dt),index=False)
         print('{}: 총 {}개의 기사 중 {}개의 네이버 기사(댓글 달기 가능)를 가져옴'.format(dt, total_news, len(df.index)))
-        #self.NC_urls = df 
+        
        
 
     def getNC(self, j):
