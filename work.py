@@ -326,7 +326,7 @@ def add_sent_score(data):
     vect = CountVectorizer(min_df = 2, max_df = n * 0.7)
     vect.fit( docs_brk )
 
-    #print("어휘 사전의 크기:", len(vect.vocabulary_))
+    print("어휘 사전의 크기:", len(vect.vocabulary_))
    # print('어휘 사전의 내용:', vect.vocabulary_)
     BOW = vect.transform(docs_brk)
     word_list = list(vect.vocabulary_)
@@ -356,7 +356,6 @@ def add_sent_score(data):
     #Countvectorizer의 word index 순으로 정렬하기
     score_vec_fin = pd.DataFrame(columns = [ 'word', 'polar'])
     for i in score_vec.index:
-        print(i)
         word = score_vec.loc[i,'word']
         idx = vect.vocabulary_[word]
         score_vec_fin.loc[idx, 'polar'] = score_vec.loc[i,'polar']

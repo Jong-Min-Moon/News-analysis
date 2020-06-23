@@ -22,6 +22,8 @@ con = sqlite3.connect('./rokanews.db')
 data = pd.read_sql('SELECT * FROM NN', con)
 data_comment = pd.read_sql('SELECT * FROM NC', con)
 data_topic = pd.read_sql('SELECT * FROM LDA', con)
+con.close()
+
 
 all_days = np.sort(data.time.unique())
 data_sent_timeseries = pd.DataFrame()
@@ -136,6 +138,36 @@ def barstack(selected_day):
     
     
     return fig
+
+def populate_bar_scatter(df):
+    """Calculates LDA and returns figure data_input you can jam into a dcc.Graph()"""
+    mycolors = np.array([color for name, color in mcolors.TABLEAU_COLORS.items()])
+    
+    traces = []
+    # for each topic and sentiment, we create a separate trace
+    markers_list = ['circle', 'x', 'square']
+   
+    trace = go.Scatter(
+        x = df['com_sent_score'],
+        y = df['doc_sent_score'],
+        mode="markers",
+        hovertext = df['doc_id'].astype('str'),
+        opacity=0.6,
+        marker=dict(
+                    size=7,
+                    #color=mycolors[topic_no],  # set color equal to a variable
+                    #colorscale="Viridis",
+                    showscale=False,
+                )
+            )
+    traces.append(trace)
+
+
+       
+
+    layout = go.Layout({"title": "LDA를 이용한 주제 분류"})
+
+    return {"data": traces, "layout": layout}
 
 
 def plotly_wordcloud(data_frame):
@@ -314,11 +346,11 @@ barstack_comment_TABLE = html.Div(
                     id="barstack-comment-table",
                     style_cell_conditional=[
                         {
-                            "if": {"column_id": "text"},
+                            "if": {"column_id": "content"},
                             "textAlign": "left",
                             "whiteSpace": "normal",
                             "height": "auto",
-                            "min-width": "80%",
+                            "min-width": "70%",
                         }
                     ],
                     style_data_conditional=[
@@ -353,6 +385,9 @@ BAR_PLOT = dcc.Loading(
      id="loading-BAR-plot", children=[dcc.Graph(id="BAR")], type="default"
 )
 
+BAR_SCATTER_PLOT = dcc.Loading(
+    id="loading-bar-scatter-plot", children=[dcc.Graph(id="bar-scatter")], type="default"
+)
 
 BAR_PLOTS = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스 주제별 감성 현황")),
@@ -366,7 +401,8 @@ BAR_PLOTS = [
         [   barstack_dropdown_day,
             BAR_PLOT,
             html.Hr(),
-            barstack_comment_TABLE
+            barstack_comment_TABLE,
+            BAR_SCATTER_PLOT
         ]
     ),
 ]
@@ -809,7 +845,7 @@ BODY = dbc.Container(
 )
 #########################################################
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.MATERIA])
 
 
 app.layout = html.Div([
@@ -835,7 +871,7 @@ def set_barstack_for_selected_day(selected_day):
     return barstack(selected_day)
 
 
-#2. 
+#2. 막대 클릭하면 댓글 전체 다 나오도록
 @app.callback(
     [
         Output("barstack-comment-table", "data"),
@@ -849,35 +885,39 @@ def set_barstack_for_selected_day(selected_day):
 def filter_table_on_bar_click(bar_click, day):
     """ TODO """
     if bar_click is not None:
-        print(bar_click['points'][0]['y'][0])
-        print(day)
-        # click_item = str(bar_click["points"][0]["hovertext"]).split('-')
-        # selected_day = click_item[0]
-        # selected_topic = click_item[1]
-        
-        # print(selected_day, selected_topic)
-        
-        return ([],[],[])
-    else:
-        return ([],[],[])
-    #     data_today_clicked = data[data['doc_id'] == int(selected_doc_no)].T
-    #     data_today_clicked.reset_index(drop = False, inplace = True)
-    #     data_today_clicked.columns = ['item', 'text']
-    #     columns_news = [{"name": 'item', "id": 'item'}, {"name": 'text', "id": 'text'}]
-    #     data_lda_table = data_today_clicked.to_dict("records")
-        
-        
-    #     comment_today_clicked = data_comment[data_comment['doc_id'] == int(selected_doc_no)].iloc[:,3:8]
-    #     comment_today_clicked.columns = ['댓글', '좋아요', '싫어요', '작성시간', '답글']
-    #     if len(comment_today_clicked) == 0:
-    #         comment_today_clicked = comment_today_clicked.append(pd.DataFrame(['댓글 없음', '','','',''], columns = ['댓글', '좋아요', '싫어요', '작성시간', '답글']), ignore_index = True)
-        
-    #     columns_comment = [{"name": i, "id": i} for i in comment_today_clicked.columns]
-    #     comment_table = comment_today_clicked.to_dict("records")
+        topic = bar_click['points'][0]['y'][0]
 
-    #     return (data_lda_table, columns_news,  {"display": "block"} , comment_table, columns_comment, {"display": "block"})
-    # else:
-    #     return ( [], [], {"display": "none"} , [], [], {"display": "none"})
+        with sqlite3.connect('./rokanews.db') as con:
+            docids = pd.read_sql("SELECT doc_id from NN WHERE time = '{}' AND label = {}".format(day, topic), con)
+            comment_table = pd.read_sql("SELECT * from NC WHERE doc_id in {}".format(tuple(docids.doc_id.tolist())), con).sort_values(by = 'like', ascending = False )
+        
+        colnames  = ['언론사', '기사제목', '댓글내용', '좋아요', '싫어요']
+        comment_table = comment_table[ ['press', 'title', 'content', 'like', 'dislike'] ]
+        comment_table.columns = ['언론사', '기사제목', '댓글내용', '좋아요', '싫어요']
+        if len(comment_table) == 0:
+            comment_table = comment_table.append(pd.DataFrame(['댓글 없음', '','','',''], columns = colnames ), ignore_index = True)
+        columns_to_display = [ {"name": i, "id": i} for i in colnames]
+    
+       
+        data_comment_table = comment_table.to_dict("records")
+        return (data_comment_table, columns_to_display,  {"display": "block"} )
+    else:
+        return ( [], [], {"display": "none"})
+
+#3. 댓글 scatterplot
+@app.callback(
+    [Output("bar-scatter", "figure")],
+    [ Input("BAR", "clickData"),
+     Input('batstack_day', 'value')]
+)
+def update_bar_scatter(bar_click, day):
+    topic = bar_click['points'][0]['y'][0]
+    with sqlite3.connect('./rokanews.db') as con:
+        docids = pd.read_sql("SELECT doc_id from NN WHERE time = '{}' AND label = {}".format(day, topic), con)
+        query = 'SELECT NC.doc_id, NC.press, NC.title, NC.content, NC.time, NC.like, NC.dislike, NC.sent_score as com_sent_score, NN.sent_score as doc_sent_score from NC INNER JOIN NN ON NN.doc_id = NC.doc_id WHERE NC.doc_id in {}'.format(tuple(docids.doc_id.tolist()))
+        tb = pd.read_sql(query, con)
+    
+    return populate_bar_scatter(tb), {"display": "none"}
 
 
 
