@@ -139,33 +139,45 @@ def barstack(selected_day):
     
     return fig
 
-def populate_bar_scatter(df):
+def rescale(series, range):
+    #min to 0
+    new = series - series.min()
+    new = new / new.max()
+    new = new * range - (range/2)
+    return new
+def populate_bar_scatter(df, topic_name):
     """Calculates LDA and returns figure data_input you can jam into a dcc.Graph()"""
-    mycolors = np.array([color for name, color in mcolors.TABLEAU_COLORS.items()])
+   
+    net_like  = df['like'] - df['dislike']
+    net_like = (net_like  - net_like .mean()) / (3 * net_like .std())
+    num_comments = len(df)
+    
     
     traces = []
     # for each topic and sentiment, we create a separate trace
-    markers_list = ['circle', 'x', 'square']
-   
+    
+    
     trace = go.Scatter(
-        x = df['com_sent_score'],
-        y = df['doc_sent_score'],
+        x = rescale(df['com_sent_score'], 2),
+        y = rescale(df['doc_sent_score'], 5),
+        
+        opacity = 0.9,
         mode="markers",
-        hovertext = df['doc_id'].astype('str'),
-        opacity=0.6,
+        hovertext = df['doc_id'].astype('str') + '\n' + '테스트테스트',
         marker=dict(
-                    size=7,
-                    #color=mycolors[topic_no],  # set color equal to a variable
-                    #colorscale="Viridis",
-                    showscale=False,
+                   
+                    #color = color_list,
+                    color = net_like,
+                    colorscale="Burg",
+                    #showscale=True,
                 )
             )
     traces.append(trace)
 
 
        
-
-    layout = go.Layout({"title": "LDA를 이용한 주제 분류"})
+    #layout = go.Layout(autosize = False, width = 900, height = 700)
+    layout = go.Layout({"title": "주제 {} 에 {}개의 댓글이 있습니다.".format(topic_name, num_comments)})
 
     return {"data": traces, "layout": layout}
 
@@ -401,8 +413,8 @@ BAR_PLOTS = [
         [   barstack_dropdown_day,
             BAR_PLOT,
             html.Hr(),
-            barstack_comment_TABLE,
-            BAR_SCATTER_PLOT
+            BAR_SCATTER_PLOT,
+            barstack_comment_TABLE
         ]
     ),
 ]
@@ -871,25 +883,52 @@ def set_barstack_for_selected_day(selected_day):
     return barstack(selected_day)
 
 
-#2. 막대 클릭하면 댓글 전체 다 나오도록
+
+#2. 댓글 scatterplot
+@app.callback(
+    [ Output("bar-scatter", "figure") ],
+    [ Input("BAR", "clickData"),
+     Input('batstack_day', 'value')]
+)
+def update_bar_scatter(bar_click, day):
+    
+    if bar_click is not None:
+        topic = bar_click['points'][0]['y']
+        topic_num = bar_click['points'][0]['y'][0]
+        with sqlite3.connect('./rokanews.db') as con:
+            docids = pd.read_sql("SELECT doc_id from NN WHERE time = '{}' AND label = {}".format(day, topic_num), con)
+            query = 'SELECT NC.doc_id, NC.press, NC.title, NC.content, NC.time, NC.like, NC.dislike, NC.sent_score as com_sent_score, NN.sent_score as doc_sent_score from NC INNER JOIN NN ON NN.doc_id = NC.doc_id WHERE NC.doc_id in {}'.format(tuple(docids.doc_id.tolist()))
+            tb = pd.read_sql(query, con)
+        scatter_points = populate_bar_scatter(tb, topic)
+        return [(scatter_points)]
+    else:
+        #default
+        with sqlite3.connect('./rokanews.db') as con:
+            docids = pd.read_sql("SELECT doc_id from NN WHERE time = '{}' AND label = {}".format(day, 0), con)
+            query = 'SELECT NC.doc_id, NC.press, NC.title, NC.content, NC.time, NC.like, NC.dislike, NC.sent_score as com_sent_score, NN.sent_score as doc_sent_score from NC INNER JOIN NN ON NN.doc_id = NC.doc_id WHERE NC.doc_id in {}'.format(tuple(docids.doc_id.tolist()))
+            tb = pd.read_sql(query, con)
+        scatter_points = populate_bar_scatter(tb, '0번째' )
+        return [(scatter_points)]
+
+
+#3. 점을 클릭하면 댓글이 나오도록
 @app.callback(
     [
         Output("barstack-comment-table", "data"),
         Output("barstack-comment-table", "columns"),
         Output("barstack-comment-table-block", "style"),
     ],
-    [Input("BAR", "clickData"),
+    [Input("bar-scatter", "clickData"),
      Input('batstack_day', 'value')
     ]
 )
-def filter_table_on_bar_click(bar_click, day):
+def filter_table_on_bar_click(bar_scatter_click, day):
     """ TODO """
-    if bar_click is not None:
-        topic = bar_click['points'][0]['y'][0]
+    if bar_scatter_click is not None:
+        docid = bar_scatter_click['points'][0]['hovertext'][0]
 
         with sqlite3.connect('./rokanews.db') as con:
-            docids = pd.read_sql("SELECT doc_id from NN WHERE time = '{}' AND label = {}".format(day, topic), con)
-            comment_table = pd.read_sql("SELECT * from NC WHERE doc_id in {}".format(tuple(docids.doc_id.tolist())), con).sort_values(by = 'like', ascending = False )
+            comment_table = pd.read_sql("SELECT * from NC WHERE doc_id = {}".format(docid), con).sort_values(by = 'like', ascending = False )
         
         colnames  = ['언론사', '기사제목', '댓글내용', '좋아요', '싫어요']
         comment_table = comment_table[ ['press', 'title', 'content', 'like', 'dislike'] ]
@@ -903,24 +942,6 @@ def filter_table_on_bar_click(bar_click, day):
         return (data_comment_table, columns_to_display,  {"display": "block"} )
     else:
         return ( [], [], {"display": "none"})
-
-#3. 댓글 scatterplot
-@app.callback(
-    [Output("bar-scatter", "figure")],
-    [ Input("BAR", "clickData"),
-     Input('batstack_day', 'value')]
-)
-def update_bar_scatter(bar_click, day):
-    topic = bar_click['points'][0]['y'][0]
-    with sqlite3.connect('./rokanews.db') as con:
-        docids = pd.read_sql("SELECT doc_id from NN WHERE time = '{}' AND label = {}".format(day, topic), con)
-        query = 'SELECT NC.doc_id, NC.press, NC.title, NC.content, NC.time, NC.like, NC.dislike, NC.sent_score as com_sent_score, NN.sent_score as doc_sent_score from NC INNER JOIN NN ON NN.doc_id = NC.doc_id WHERE NC.doc_id in {}'.format(tuple(docids.doc_id.tolist()))
-        tb = pd.read_sql(query, con)
-    
-    return populate_bar_scatter(tb), {"display": "none"}
-
-
-
 ########################################################################################################################
 @app.callback(
     [Output("topic", "options")],
