@@ -158,12 +158,12 @@ def populate_bar_scatter(df, topic_name):
     
     
     trace = go.Scatter(
-        x = rescale(df['com_sent_score'], 2),
-        y = rescale(df['doc_sent_score'], 5),
+        x = df['doc_sent_score'],  
+        y = df['com_sent_score'], 
         
         opacity = 0.9,
         mode="markers",
-        hovertext = df['doc_id'].astype('str') + '\n' + '테스트테스트',
+        hovertext = df['doc_id'].astype('str') + '\n' + df['content'],
         marker=dict(
                    
                     #color = color_list,
@@ -177,7 +177,8 @@ def populate_bar_scatter(df, topic_name):
 
        
     #layout = go.Layout(autosize = False, width = 900, height = 700)
-    layout = go.Layout({"title": "주제 {} 에 {}개의 댓글이 있습니다.".format(topic_name, num_comments)})
+    layout = go.Layout([{"title": "주제 {} 에 {}개의 댓글이 있습니다.".format(topic_name, num_comments), 'xaxis_title' : "기사의 감성점수",
+    'yaxis_title' : '댓글의 감성점수'}])
 
     return {"data": traces, "layout": layout}
 
@@ -1094,4 +1095,4 @@ def update_pie_plot(selected_day, selected_topic):
 
 
 if __name__ == '__main__': #이게 callback보다 앞에 와야 callback이 디버깅됨
-    app.run_server(debug = True)
+    app.run_server()
