@@ -177,8 +177,8 @@ def populate_bar_scatter(df, topic_name):
 
        
     #layout = go.Layout(autosize = False, width = 900, height = 700)
-    layout = go.Layout([{"title": "주제 {} 에 {}개의 댓글이 있습니다.".format(topic_name, num_comments), 'xaxis_title' : "기사의 감성점수",
-    'yaxis_title' : '댓글의 감성점수'}])
+    layout = go.Layout({"title": "주제 {} 에 {}개의 댓글이 있습니다.".format(topic_name, num_comments), 'xaxis_title' : "기사의 감성점수",
+    'yaxis_title' : '댓글의 감성점수', 'autosize' : False, 'width': 950, 'height': 750})
 
     return {"data": traces, "layout": layout}
 
