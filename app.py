@@ -149,7 +149,6 @@ def populate_bar_scatter(df, topic_name):
     """Calculates LDA and returns figure data_input you can jam into a dcc.Graph()"""
    
     net_like  = df['like'] - df['dislike']
-    net_like = (net_like  - net_like .mean()) / (3 * net_like .std())
     num_comments = len(df)
     
     
@@ -158,17 +157,17 @@ def populate_bar_scatter(df, topic_name):
     
     
     trace = go.Scatter(
-        x = df['doc_sent_score'],  
-        y = df['com_sent_score'], 
+        x = df['com_sent_score'],  
+        y = net_like, 
         
         opacity = 0.9,
         mode="markers",
-        hovertext = df['doc_id'].astype('str') + '\n' + df['content'],
+        hovertext = df['doc_id'].astype('str') + ' / ' +  df['title'] + '/' + df['content'],
         marker=dict(
                    
                     #color = color_list,
-                    color = net_like,
-                    colorscale="Burg",
+                    
+                   
                     #showscale=True,
                 )
             )
@@ -177,8 +176,8 @@ def populate_bar_scatter(df, topic_name):
 
        
     #layout = go.Layout(autosize = False, width = 900, height = 700)
-    layout = go.Layout({"title": "주제 {} 에 {}개의 댓글이 있습니다.".format(topic_name, num_comments), 'xaxis_title' : "기사의 감성점수",
-    'yaxis_title' : '댓글의 감성점수', 'autosize' : False, 'width': 950, 'height': 750})
+    layout = go.Layout({"title": "주제 {} 에 {}개의 댓글이 있습니다.".format(topic_name, num_comments), 'xaxis_title' : '댓글의 감성점수' ,
+    'yaxis_title' : "순 좋아요(좋아요 - 싫어요)" , 'autosize' : False, 'width': 950, 'height': 750})
 
     return {"data": traces, "layout": layout}
 
@@ -423,6 +422,13 @@ BAR_PLOTS = [
 
 
 ################################################################################################
+
+
+
+
+
+
+##############################################################################################
 latest_data_comment = data_comment[data_comment.time.str.slice(start = 0, stop = 10) == all_days[-1] ]
 latest_data_comment_top5 = latest_data_comment.sort_values(by = 'like', ascending = False).iloc[:5, :]
 latest_data_comment_bottom5 = latest_data_comment.sort_values(by = 'dislike', ascending = False).iloc[:5, :]
@@ -837,7 +843,22 @@ PIE_PLOTS = [
     ),
 ]
 ######################################################################################################
-
+SEARCH_GRAPH =  dcc.Loading(
+     id="loading-search-timeseries_comment-plot", children=[dcc.Graph(id="search-timeseries_comment", figure = fig_timeseries_comment)], type="default"
+)
+SEARCH = [
+    dbc.CardHeader(html.H5("특정 키워드 관련 내용 추이 보기")),
+    
+    dbc.CardBody(
+        [   dcc.Input(id='my-id', value='initial value', type='text'),
+            html.Hr(),
+            html.Div(id='my-div'),
+            html.Hr(),
+            SEARCH_GRAPH
+           
+        ]
+    ),
+]
 ###########################################################################
 
 ######################################################################
@@ -846,6 +867,7 @@ BODY = dbc.Container(
         dbc.Card(BAR_PLOTS),
         dbc.Row([dbc.Col([dbc.Card(COMMENT_TOP5_PLOTS)])], style={"marginTop": 50}),
         dbc.Row([dbc.Col([dbc.Card(COMMENT_BOTTOM5_PLOTS)])], style={"marginTop": 50}),
+        dbc.Row([dbc.Col([dbc.Card(SEARCH)])], style={"marginTop": 50}),    
         dbc.Row([dbc.Col([dbc.Card(PIE_PLOTS)])], style={"marginTop": 50}),
         dbc.Row([dbc.Col([dbc.Card(WORDCLOUD_PLOTS)])], style={"marginTop": 50}),
         dbc.Row([dbc.Col([dbc.Card(LDA_PLOTS)])], style={"marginTop": 50}),
@@ -857,6 +879,16 @@ BODY = dbc.Container(
     className="mt-12",
 )
 #########################################################
+
+
+
+
+
+
+
+
+
+
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.MATERIA])
 
@@ -944,6 +976,18 @@ def filter_table_on_bar_click(bar_scatter_click, day):
     else:
         return ( [], [], {"display": "none"})
 ########################################################################################################################
+
+
+@app.callback(
+    Output(component_id='my-div', component_property='children'),
+    [Input(component_id='my-id', component_property='value')]
+)
+def update_output_div(input_value):
+    return '키워드 "{}" 에 대한 뉴스 및 댓글 추이:'.format(input_value)
+
+
+
+#######################################################################################################################
 @app.callback(
     [Output("topic", "options")],
     [Input("day", "value")]
