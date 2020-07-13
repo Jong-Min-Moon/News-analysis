@@ -79,7 +79,7 @@ def Do_LDA(df, n_topic):
     print('\nPerplexity: ', lda.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
 
     # Compute Coherence Score
-    coherence_model_lda = CoherenceModel(model = lda, texts = texts_for_CVT , dictionary = d, coherence='c_v')
+    coherence_model_lda = CoherenceModel(model = lda, texts = texts , dictionary = d, coherence='c_v', processes= 1)#nee og text, not lemmatized
     coherence_lda = coherence_model_lda.get_coherence()
     print('\nCoherence Score: ', coherence_lda)
     return lda, corpus
