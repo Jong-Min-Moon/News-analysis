@@ -31,3 +31,5 @@ traitlets==4.3.2
 Werkzeug==1.0.1
 wordcloud==1.7.0
 spacy==2.2.4
+
+kiwipiepy
