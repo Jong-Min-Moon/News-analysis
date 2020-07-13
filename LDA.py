@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import re, nltk, spacy, gensim
+import re, spacy, gensim
 
 # Sklearn
 from sklearn.decomposition import LatentDirichletAllocation, TruncatedSVD
@@ -11,7 +11,8 @@ from pprint import pprint
 
 from gensim.matutils import Sparse2Corpus
 from gensim.models.ldamodel import LdaModel
-
+from gensim.models import CoherenceModel
+import gensim.corpora as corpora
 
 
 import pickle
@@ -50,8 +51,8 @@ def Do_LDA(df, n_topic):
     texts_for_CVT = [' '.join(tokenize(sentence)) for sentence in texts]
 
     vectorizer = CountVectorizer(analyzer='word',       
-                             min_df = 4,                        # minimum reqd occurences of a word 
-                             max_df = 0.9,
+                             min_df = 5,                        # minimum reqd occurences of a word 
+                             max_df = 0.55,
                              #stop_words=stopwords,             # remove stop words
                              token_pattern = '[가-힣]{2,}',  # num chars > 3
                             )
@@ -63,16 +64,30 @@ def Do_LDA(df, n_topic):
     for key, val in vectorizer.vocabulary_.items():
         vocabulary_gensim[val] = key
 
+
+
+    d = corpora.Dictionary()
+    d.id2token = vocabulary_gensim
+    d.token2id = vectorizer.vocabulary_
     #gensim용 corpus. list of (id, occurence) tuples.
     corpus = gensim.matutils.Sparse2Corpus(data_vectorized, documents_columns=False)
 
     lda = LdaModel(corpus = corpus, num_topics = 8, id2word = vocabulary_gensim)
 
 
+    # Compute Perplexity
+    print('\nPerplexity: ', lda.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
+
+    # Compute Coherence Score
+    coherence_model_lda = CoherenceModel(model = lda, texts = texts_for_CVT , dictionary = d, coherence='c_v')
+    coherence_lda = coherence_model_lda.get_coherence()
+    print('\nCoherence Score: ', coherence_lda)
+    return lda, corpus
+
 
 
  #학습한 doc-top 행렬과 top-term 행렬을 이용, dominant topic과 top10 keyword 제시
-def format_topics_sentences(ldamodel=None, corpus = corpus, texts=titles_join):
+def format_topics_sentences(ldamodel, corpus, texts):
     sent_topics_df = pd.DataFrame() # 빈 데이터프레임 생성
 
     # Get main topic in each document
