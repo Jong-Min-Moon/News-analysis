@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import re, spacy, gensim
+import re,  gensim
 
 # Sklearn
 from sklearn.decomposition import LatentDirichletAllocation, TruncatedSVD
