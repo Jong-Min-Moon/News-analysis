@@ -12,7 +12,8 @@ from pprint import pprint
 from gensim.matutils import Sparse2Corpus
 from gensim.models.ldamodel import LdaModel
 from gensim.models import CoherenceModel
-import gensim.corpora as corpora
+from gensim.corpora.dictionary import Dictionary
+
 
 
 import pickle
@@ -37,57 +38,88 @@ def tokenize(sent):
 
 
 
+def doc2corpus(texts):
+    texts_for_CVT = [' '.join(tokenize(sentence)) for sentence in texts]
+
+    vectorizer = CountVectorizer(analyzer='word',       
+                             min_df = 6,                        # minimum reqd occurences of a word 
+                             max_df = 0.2,
+                             stop_words=stopwords,             # remove stop words
+                             token_pattern = '[가-힣]{2,}',  # num chars > 3
+                            )
+
+    data_vectorized = vectorizer.fit_transform(texts_for_CVT)
+
+    #gensim용 id2word    
+    corpus = gensim.matutils.Sparse2Corpus(data_vectorized, documents_columns=False)
+    dictionary = Dictionary.from_corpus(corpus,
+        id2word = dict((id, word) for word, id in vectorizer.vocabulary_.items()))
+    
+    return corpus, dictionary
 
 
-
-
-def Do_LDA(df, n_topic):
+def Do_LDA(df):
     texts = df.content #pd seies
     
 
     #1. manual cleansing with regexp
     
     #2. tokenize & lemmatize
-    texts_for_CVT = [' '.join(tokenize(sentence)) for sentence in texts]
-
-    vectorizer = CountVectorizer(analyzer='word',       
-                             min_df = 5,                        # minimum reqd occurences of a word 
-                             max_df = 0.55,
-                             #stop_words=stopwords,             # remove stop words
-                             token_pattern = '[가-힣]{2,}',  # num chars > 3
-                            )
-
-    data_vectorized = vectorizer.fit_transform(texts_for_CVT)
-
-    #gensim용 id2word
-    vocabulary_gensim = {}
-    for key, val in vectorizer.vocabulary_.items():
-        vocabulary_gensim[val] = key
 
 
 
-    d = corpora.Dictionary()
-    d.id2token = vocabulary_gensim
-    d.token2id = vectorizer.vocabulary_
+
     #gensim용 corpus. list of (id, occurence) tuples.
-    corpus = gensim.matutils.Sparse2Corpus(data_vectorized, documents_columns=False)
+    corpus, dic = doc2corpus(texts)
+    n_folds = 3
+    fold_size = round(len(df)/ n_folds)
+    PPL_list = []
+    for n_topic in range(1,10 + 1):
+        lda_best = LdaModel(corpus = corpus, num_topics = n_topic, id2word = dic)
+        fold_divide = np.random.permutation(len(df))
+        PPL = 0
+        for i in range(n_folds):
+            train_idx = np.concatenate( (fold_divide[ : i * fold_size], fold_divide[(i+1) * fold_size : ]) )
+            valid_idx = fold_divide[ i * fold_size  : (i+1) * fold_size]
 
-    lda = LdaModel(corpus = corpus, num_topics = 8, id2word = vocabulary_gensim)
+            print('train_idx:', train_idx)
+            print('valid_idx:', valid_idx)
+
+            doc_train = texts[train_idx]
+            doc_valid = texts[valid_idx]
+            print(type(doc_valid))
+            corpus, voc = doc2corpus(doc_train)
+            lda = LdaModel(corpus = corpus, num_topics = n_topic, id2word = voc)
+
+          
+
+            valid_corpus = []
+            for i in range(len(doc_valid)):
+                new_doc = doc_valid.iloc[i]
+                new_doc_tokened = tokenize(new_doc)
+                print(new_doc_tokened)
+                new_doc_by_traincorpus = voc.doc2bow( new_doc_tokened )
+                print(new_doc_by_traincorpus)
+                valid_corpus.append(new_doc_by_traincorpus)
+
+            PPL_now = lda.log_perplexity(valid_corpus)
+            print('perplexity:', PPL_now)
+            PPL += PPL_now
+        PPL_list.append(PPL)
+    print('\nPerplexity: ', list(zip( range(1,10+1), PPL_list) ))
+    n_topic_best = np.array(PPL_list).argmin() + 1
+    print('\n best n_topic:', n_topic_best)
 
 
-    # Compute Perplexity
-    print('\nPerplexity: ', lda.log_perplexity(corpus))  # a measure of how good the model is. lower the better.
+    corpus, voc= doc2corpus(texts)
+    lda_best = LdaModel(corpus = corpus, num_topics = n_topic_best, id2word = voc)
 
-    # Compute Coherence Score
-    coherence_model_lda = CoherenceModel(model = lda, texts = texts , dictionary = d, coherence='c_v', processes= 1)#nee og text, not lemmatized
-    coherence_lda = coherence_model_lda.get_coherence()
-    print('\nCoherence Score: ', coherence_lda)
-    return lda, corpus
+    return lda_best, corpus
 
 
 
  #학습한 doc-top 행렬과 top-term 행렬을 이용, dominant topic과 top10 keyword 제시
-def format_topics_sentences(ldamodel, corpus, texts):
+def format_topics_sentences(ldamodel, corpus, docs):
     sent_topics_df = pd.DataFrame() # 빈 데이터프레임 생성
 
     # Get main topic in each document
@@ -104,8 +136,9 @@ def format_topics_sentences(ldamodel, corpus, texts):
     sent_topics_df.columns = ['Dominant_Topic', 'Perc_Contribution', 'Topic_Keywords']
 
     # Add original text to the end of the output
-    contents = pd.Series(texts)
+    contents = pd.Series(docs.title)
     sent_topics_df = pd.concat([sent_topics_df, contents], axis=1)
+    sent_topics_df['time'] = docs.time[0]
     return(sent_topics_df)
 
 
@@ -127,6 +160,6 @@ def most_relev_doc(ldamodel, corpus, texts):
 
     
     sent_topics_sorteddf_mallet.reset_index(drop=True, inplace=True)  # Reset Index   
-    sent_topics_sorteddf_mallet.columns = ['Topic_Num', "Topic_Perc_Contrib", "Keywords", "Representative Text", 'items'] # Format
+    sent_topics_sorteddf_mallet.columns = ['Topic_Num', "Topic_Perc_Contrib", "Keywords", "Representative Text", 'time', 'items'] # Format
 
     return sent_topics_sorteddf_mallet.sort_values(by = 'items', ascending = False)

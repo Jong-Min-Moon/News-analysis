@@ -42,19 +42,9 @@ import pickle
 # tokenize 함수를 정의합니다. 한국어 문장을 입력하면 형태소 단위로 분리하고, 
 # 불용어 및 특수 문자 등을 제거한 뒤, list로 반환합니다.
 
-with open('./korean_stopwords.txt', 'rb') as f:
-    stopwords = pickle.load(f)
-stopwords = set(stopwords)
 
-kiwi = Kiwi()
-print('kwi')
-kiwi.prepare()
 
-def tokenize(sent):
-    res, score = kiwi.analyze(sent)[0] # 첫번째 결과를 사용
-    return [word + ('다' if tag.startswith('V') else '') # 동사에는 '다'를 붙여줌
-            for word, tag, _, _ in res
-            if not tag.startswith('E') and not tag.startswith('J') and not tag.startswith('S') and word not in stopwords] # 조사, 어미, 특수기호는 제거
+
 
 def merge(mypath):
     file_list = os.listdir(mypath)
@@ -68,82 +58,7 @@ def merge(mypath):
     return(data)
 
 
-def Do_LDA(df, n_topic, n_iter):
-    df_with_tsne = df[df.content != 0].copy()
-    texts = df_with_tsne.content
-    model = tp.LDAModel(k = n_topic, alpha=0.1, eta=0.01, min_cf=5, min_df = 2,  tw=tp.TermWeight.PMI)
-    for i, line in enumerate(texts):
-        if line != []:
-            token = tokenize(line)
-            print(token)
-            model.add_doc(token) # 공백 기준으로 단어를 나누어 model에 추가합니다.
-        if line == []:
-            df_with_tsne.drop([i])
-        if i % 10 == 0: print('Document #{} has been loaded'.format(i))
 
-    model.train(0) 
-    print('Total docs:', len(model.docs))
-    print('Total words:', model.num_words)
-    print('Vocab size:', model.num_vocabs)
-        
-    # 다음 구문은 train을 총 200회 반복하면서, 
-    # 매 단계별로 로그 가능도 값을 출력해줍니다.
-    # 혹은 단순히 model.train(200)으로 200회 반복도 가능합니다.
-    for i in range(n_iter):
-        if i % 1000 ==0:
-            print('Iteration {}\tLL per word: {}'.format(i, model.ll_per_word))
-        model.train(1)
-        
-    # 학습된 토픽들을 출력해보도록 합시다.
-    for i in range(model.k):
-        # 토픽 개수가 총 20개이니, 0~19번까지의 토픽별 상위 단어 10개를 뽑아봅시다.
-        res = model.get_topic_words(i, top_n=10)
-        print('Topic #{}'.format(i), end='\t')
-        print(', '.join(w for w, p in res))
-
-    LDA_today = pd.DataFrame()
-    print(df.time)
-    today = df.time.iloc[0]
-
-    for i in range(n_topic):
-        topic = list(zip(model.vocabs, [ round(elem, 6) for elem in model.get_topic_word_dist(i) ] ))
-        topic.sort(key = lambda x: -x[1])
-        topic = topic[:30]
-        # topic = ['.%6f' % float(elem) for elem in topic]
-        top3 = '/ '.join(item[0] for item in topic[:3])
-       
-        temp_series = topic + [today, str(i), top3]
-        LDA_today = LDA_today.append(pd.Series(temp_series), ignore_index = True)
-
-    LDA_today.columns = ['word{}'.format(i) for i in range(30)]+ ['time', 'label', 'top3']
-    #LDA_today.to_csv( 'D:/crawling/News-analysis/LDAs/LDA_{}.csv'.format(today),index=False, encoding='utf-8-sig')  
-      
-
-    #T-SNE 정보를 원본 데이터프레임에 추가
-    # Get topic weights
-    topic_weights = []
-    for i, doc in enumerate(model.docs):
-        topic_weights.append(np.array(model.infer( doc, iter=100, tolerance=-1, workers=0, parallel=0, together=False )[0]))
-
-    # Array of topic weights    
-    arr = pd.DataFrame(topic_weights).fillna(0).values
-
-    # Dominant topic number in each doc
-    label = np.argmax(arr, axis=1)
-
-    # tSNE Dimension Reduction
-    tsne_model = TSNE(n_components=2, verbose=1, random_state=0, angle=.99, init='pca')
-    tsne_lda = tsne_model.fit_transform(arr)
-
-    df_with_tsne['x'] = tsne_lda[:,0]
-    df_with_tsne['y'] = tsne_lda[:,1]
-    df_with_tsne['label'] = label
-    
-    top3_to_merge = LDA_today[['label', 'top3']].copy()
-    top3_to_merge.label = top3_to_merge.label.astype('int64')
-    df_with_tsne = pd.merge(df_with_tsne, top3_to_merge, on = 'label', how = 'left')
-    #df_with_tsne.to_csv('D:/crawling/News-analysis/NN/NN_{}.csv'.format(today),index=False, encoding='utf-8-sig')
-    return LDA_today, df_with_tsne
     
 
 class Crawler():

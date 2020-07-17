@@ -1,9 +1,12 @@
 import LDA
+import sqlite3
 import pandas as pd
 
-news = pd.read_csv('NN_2020.05.31.csv')
+con = sqlite3.connect('./rokanews.db')
+docs = pd.read_sql('SELECT * FROM NN WHERE time = "2020.06.22"', con)
 
-lda_model, corpus = LDA.Do_LDA(news, 5)
+lda, corpus = LDA.Do_LDA(docs)
 
-#print(LDA.format_topics_sentences(lda_model, corpus, news.title))
-print(LDA.most_relev_doc(lda_model, corpus, news.title))
+print( LDA.format_topics_sentences(lda, corpus, docs) )
+print( LDA.most_relev_doc(lda, corpus, docs)) 
+

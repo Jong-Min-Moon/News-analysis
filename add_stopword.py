@@ -13,7 +13,8 @@ def add_word(word):
     
     
 
-add_word('그')
+add_word('뉴시스')
+add_word('이데일리')
 
 
 
