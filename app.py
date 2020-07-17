@@ -17,6 +17,10 @@ import matplotlib.colors as mcolors
 import os #파일 및 폴더 관리
 import sqlite3
 
+
+import basic
+from widgets import top10_table
+
 ######################### DATA #########################
 con = sqlite3.connect('./rokanews.db')
 data = pd.read_sql('SELECT * FROM NN', con)
@@ -145,6 +149,7 @@ def rescale(series, range):
     new = new / new.max()
     new = new * range - (range/2)
     return new
+
 def populate_bar_scatter(df, topic_name):
     """Calculates LDA and returns figure data_input you can jam into a dcc.Graph()"""
    
@@ -343,6 +348,35 @@ NAVBAR = dbc.Navbar(
     dark=True,
     sticky="top",
 )
+
+##################################################################################
+daily_top10 = html.Div(className='section', children=[
+            html.Div(
+                className='section-title',
+                children="LAS well"
+            ),
+
+            html.Div(
+                className='page',
+                children=[
+                    html.Div(
+                        id='las-table',
+                        children=top10_table.generate_table()
+                    ),
+                    html.Div(
+                        id='las-table-print'
+                    )]
+            )
+    ])
+
+daily_top10_card = [
+    dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스 주요 주제 10개")),
+
+    dbc.CardBody(
+        [   daily_top10
+        ]
+    ),
+]
 ###################################1. 막대그래프################################################################################
 
 
@@ -862,22 +896,17 @@ SEARCH = [
 ###########################################################################
 
 ######################################################################
-BODY = dbc.Container(
-    [
-        dbc.Card(BAR_PLOTS),
-        dbc.Row([dbc.Col([dbc.Card(COMMENT_TOP5_PLOTS)])], style={"marginTop": 50}),
-        dbc.Row([dbc.Col([dbc.Card(COMMENT_BOTTOM5_PLOTS)])], style={"marginTop": 50}),
-        dbc.Row([dbc.Col([dbc.Card(SEARCH)])], style={"marginTop": 50}),    
-        dbc.Row([dbc.Col([dbc.Card(PIE_PLOTS)])], style={"marginTop": 50}),
-        dbc.Row([dbc.Col([dbc.Card(WORDCLOUD_PLOTS)])], style={"marginTop": 50}),
-        dbc.Row([dbc.Col([dbc.Card(LDA_PLOTS)])], style={"marginTop": 50}),
-        dbc.Row([dbc.Col([dbc.Card(TIMESERIES_PLOTS)])], style={"marginTop": 50}),
-        dbc.Row([dbc.Col([dbc.Card(timeseries_comment_PLOTS)])], style={"marginTop": 50})
-        
-        
-    ],
-    className="mt-12",
-)
+BODY = basic.bodymaker([
+    daily_top10_card,
+    BAR_PLOTS,
+    COMMENT_TOP5_PLOTS,
+    SEARCH,
+    PIE_PLOTS,
+    WORDCLOUD_PLOTS,
+    LDA_PLOTS,
+    TIMESERIES_PLOTS,
+    timeseries_comment_PLOTS
+])
 #########################################################
 
 
@@ -894,7 +923,8 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.MATERIA])
 
 
 app.layout = html.Div([
-    NAVBAR, BODY
+    NAVBAR, BODY,
+
 ])
 
 server = app.server
