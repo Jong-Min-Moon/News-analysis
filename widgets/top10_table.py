@@ -1,12 +1,12 @@
 import pandas as pd
 import dash_table as dt
 
-def generate_table():
+def generate_table(df):
     data = {
-       '' : [1,2,3,4],
+       '' : list(range(1,10+1)),
        'b' : [2,3,4,5],
        'c' : [3,4,5,1],
-       'd' : [1,4,2,5]
+
     }
 
     df = pd.DataFrame(

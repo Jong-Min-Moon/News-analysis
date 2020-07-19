@@ -350,12 +350,11 @@ NAVBAR = dbc.Navbar(
 )
 
 ##################################################################################
-daily_top10 = html.Div(className='section', children=[
-            html.Div(
-                className='section-title',
-                children="LAS well"
-            ),
+docids = pd.read_sql("SELECT doc_id from NN WHERE time = '{}' AND label = {}".format(day, topic_num), con) #sql문 수정 필요.
 
+
+
+daily_top10 = html.Div(className='section', children=[
             html.Div(
                 className='page',
                 children=[
@@ -371,7 +370,6 @@ daily_top10 = html.Div(className='section', children=[
 
 daily_top10_card = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스 주요 주제 10개")),
-
     dbc.CardBody(
         [   daily_top10
         ]

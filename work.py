@@ -161,6 +161,8 @@ class Crawler():
         df['v1'] = np.arange(len(df.index))
         df.drop_duplicates(['url'])
         df = df.drop('v1', axis = 1)
+
+        df['n_comments'] = 0
         self.NC_urls[i] =  df   
     
         #df.to_csv( self.crawl_objs['NC'][2] +'/naver_comment_url{}_{}.csv'.format(self.query, dt),index=False)
@@ -225,81 +227,7 @@ class Crawler():
 
 
 
-def add_sent_score(data):
-    from konlpy.tag import Okt
-    new_data = data[data.content != 0].copy()
-    docs = new_data.content
-    n = len(docs)
 
-
-    docs_brk = []
-    for doc in docs:
-        doc_brk = tokenize(doc)
-        tknd = ' '.join( doc_brk )
-        docs_brk.append(tknd)
-    
-    vect = CountVectorizer(min_df = 2, max_df = n * 0.7)
-    vect.fit( docs_brk )
-
-    print("어휘 사전의 크기:", len(vect.vocabulary_))
-   # print('어휘 사전의 내용:', vect.vocabulary_)
-    BOW = vect.transform(docs_brk)
-    word_list = list(vect.vocabulary_)
-
-    with open('D:/crawling/KnuSentiLex-master/data/SentiWord_info.json', 'r', encoding='UTF8') as fileref:
-        dict_str = fileref.read() 
-
-    sent_dict = json.loads(dict_str) #감성어 사전
-
-
-    #감성어 사전에 있는 단어만 극성점수 리스트 만들기
-    word_scores = pd.DataFrame(columns = [ 'word', 'polar'])
-    for i in range(len(word_list)):
-        word = word_list[i]
-        for sentword in sent_dict:
-            if ( (word in sentword['word']) or (word in sentword['word_root']) ):
-                word_scores.loc[i, 'word'] = word
-                word_scores.loc[i, 'polar'] = int( sentword['polarity'] ) 
-                #print(word)
-                break
-
-    #전체 단어 리스트에 left join하면 점수 없는 단어는 점수가 NA로 표시될 것
-    word_list_pd = pd.DataFrame(word_list, columns = ['word'])
-    score_vec = pd.merge(word_list_pd, word_scores, how = 'left', on='word')
-
-
-    #Countvectorizer의 word index 순으로 정렬하기
-    score_vec_fin = pd.DataFrame(columns = [ 'word', 'polar'])
-    for i in score_vec.index:
-        word = score_vec.loc[i,'word']
-        idx = vect.vocabulary_[word]
-        score_vec_fin.loc[idx, 'polar'] = score_vec.loc[i,'polar']
-        score_vec_fin.loc[idx, 'word'] = word
-    score_vec_fin.sort_index(inplace = True)
-
-    #행렬 연산을 위해 변형
-    score_vec_comp = score_vec_fin.polar.to_numpy().reshape(-1,1)
-
-    #NaN을 0으로 바꿔주기
-    score_vec_comp2 = np.repeat(0, len(score_vec_comp))
-    for i in range( len(score_vec_comp) ):
-        if not np.isnan( score_vec_comp[i][0] ):
-            score_vec_comp2[i] = score_vec_comp[i][0]
-    score_vec_comp2 = score_vec_comp2.reshape(-1,1)
-
-    #감성점수 계산. BOW = 문서 * 단어, score_vec_comp = 단어 * 점수  --> 행렬-벡터 곱은 문서 * 점수
-    r = scipy.sparse.csr_matrix.dot(BOW, score_vec_comp2)
-    r = np.ndarray.flatten(r)
-    tot = BOW.sum(axis=1)#문서당 단어 수
-    tot = np.ndarray.flatten(np.asarray(tot))
-
-    #np.count_nonzero(score_vec_comp3 == 1)
-    #np.count_nonzero(r > 1)
-    new_data['polar_sum'] = r
-    new_data['tot'] = tot
-    new_data['sent_score'] = new_data['polar_sum'] / new_data['tot']
-    new_data['label'] = 'NA'
-    return(new_data)
 
 
 

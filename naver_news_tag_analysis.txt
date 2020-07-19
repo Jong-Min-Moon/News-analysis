@@ -1,0 +1,16 @@
+1. ul.type1>li 태그의 기본 구조
+<li>
+    <div.thumb> #기사 사진 썸네일. 필요 없음.
+    <dl> #크롤링 할 대상.
+<li>
+
+
+2. dl 태그 분석
+dl안에 dt와 dd가 있다. dt가 제목(Description-Term), dd가 설명(Description-Description)
+
+<dl>
+    <dt> #기사 제목과 외부 링크.
+    <dd.txt_inline> 언론사, 네이버 뉴스 링크
+    <dd> 기사 내용 미리보기
+    <dd> 관련 기사(없으면 태그도 없음)
+<dl>
