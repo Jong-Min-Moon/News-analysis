@@ -17,9 +17,6 @@ from time import sleep
 import re #정규식
 import os #파일 및 폴더 관리
 import shutil #파일 한번에 삭제
-from multiprocessing import Pool
-from concurrent.futures import ThreadPoolExecutor
-import concurrent.futures
 import urllib.request        
 import sys
 
@@ -56,6 +53,35 @@ class naver_crawl():
                 columns = ['doc_id', 'press', 'title', 'ex_url', 'in_url', 'content', 'is_relation', 'master']
                 ),
                 ignore_index = True)
+
+    def get_news_num(self, new_query):
+        base_url = 'https://search.naver.com/search.naver'
+        d = {'where':'news', 
+             'query' : new_query,
+             'sort':0,
+             'photo':0,
+             'field':0,
+             'reporter_article':'',
+             'pd': 3,
+             'ds' : self.crawldate,
+             'de' : self.crawldate,
+             'docid':'',
+             'refresh_start': 0,
+             'start' :  1 }
+        
+        response = requests.get(base_url, params=d)
+                
+        # 네이버 기사 개수 가져오기
+        soup = BeautifulSoup(response.text, 'lxml')
+
+        total_news = soup.find('div', 'title_desc') # 검색 결과 개수 가져오기
+        if isinstance(total_news , type(None)):
+            return None #검색 결과가 아예 없으면 여기서 끝. 임시파일도 생성x. 뉴스는 있는데 네이버 뉴스만 있으면 빈 임시파일이 생성됨.
+        else:
+            total_news = re.split(' / ', total_news.text)[1][0:-1] # 1-10 / 629건 과 같은 형식에서 629만 가져오기. '/'로 쪼갠 다음, '건'을 지운다.
+            total_news = int(total_news.replace(',','')) # 나눗셈을 하기 위해 자릿수 표시하는 ','를 지우고, string을 int로 변경
+                        
+        return total_news
 
     def get_naver_news(self):   
         #1. 탐색할 페이지 수 결정하기

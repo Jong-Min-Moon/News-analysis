@@ -35,3 +35,4 @@ spacy==2.2.4
 kiwipiepy
 BeautifulSoup4
 lxml
+sklearn
