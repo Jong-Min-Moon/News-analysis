@@ -26,13 +26,13 @@ def tokenize(sent):
             for word, tag, _, _ in res
             if not tag.startswith('E') and not tag.startswith('J') and not tag.startswith('S') and word not in stopwords] # 조사, 어미, 특수기호는 제거
 
-mycrawl = crawl.naver_crawl('육군', '2020.07.19')
+mycrawl = crawl.naver_crawl('육군', '2020.07.17')
 mycrawl.get_naver_news()
 
 related = mycrawl.df_naver_news[mycrawl.df_naver_news.is_relation == True]
-
 related_groupby = related.groupby('master') #pd generic groupby. 뒤에 .mean() 등을 붙이면 일반적인 groupby가 됨.
 
+df = pd.DataFrame()
 for i, grp in related_groupby: #각 grp는 하나의 데이터프레임
     texts = grp.title
     top_title = texts.iloc[0]
@@ -51,4 +51,7 @@ for i, grp in related_groupby: #각 grp는 하나의 데이터프레임
     query_words = '육군, ' + ', '.join(top_words)
     print(query_words)
     news_num = mycrawl.get_news_num(query_words)
-    print(top_title, top_words, news_num )
+    df = df.append(pd.Series([top_title, int(news_num) , top_words]), ignore_index=True)
+df.columns = ['제목', '기사갯수', '단어']
+df = df.sort_values(by = '기사갯수', desc = True)
+print(df)

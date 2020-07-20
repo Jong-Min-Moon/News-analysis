@@ -1,8 +1,6 @@
-import work
 
-from work import Crawler
 import NLP
-from multiprocessing import Pool
+import crawl
 import schedule
 from pprint import pprint
 import time
@@ -48,9 +46,16 @@ if __name__ == '__main__':
         con.commit()
         con.close()
 
+    def job2():
+        today = datetime.today().strftime('%Y.%m.%d')
+        today = '2020.07.17'
+        df = crawl.daily_crawl_naver_news(today)
 
+        df.to_sql('pagerank', con, if_exists = 'append', index = False)
+        con.commit()
+        con.close()
     # schedule.every().day.at("23:50:00").do(job1)
-    job1()
+    job2()
     
     # from pprint import pprint
 

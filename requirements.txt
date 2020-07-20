@@ -36,3 +36,6 @@ kiwipiepy
 BeautifulSoup4
 lxml
 sklearn
+gensim
+selenium
+schedule
