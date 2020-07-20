@@ -15,9 +15,9 @@ import sqlite3
 
 if __name__ == '__main__':
     con = sqlite3.connect("./rokanews.db")
-    with open('schema.sql') as fp:
-        con.executescript(fp.read())
-    con.commit()
+    #with open('schema.sql') as fp:
+    #    con.executescript(fp.read())
+    #con.commit()
     def job1():
         today = datetime.today().strftime('%Y-%m-%d')
         today = '2020-07-17'
@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     def job2():
         today = datetime.today().strftime('%Y.%m.%d')
-        today = '2020.07.18'
+        today = '2020.07.17'
         df = crawl.daily_crawl_naver_news(today)
 
         df.to_sql('pagerank', con, if_exists = 'append', index = False)
