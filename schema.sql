@@ -27,3 +27,11 @@ CREATE TABLE naver_comment (
 	tot	INTEGER,
 	sent_score	REAL
 );
+
+
+DROP TABLE IF EXISTS pagerank;
+CREATE TABLE pagerank (
+    doc_id INTEGER,
+	title	TEXT,
+  num INTEGER
+);

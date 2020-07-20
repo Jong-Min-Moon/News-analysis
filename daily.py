@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     def job2():
         today = datetime.today().strftime('%Y.%m.%d')
-        today = '2020.07.17'
+        today = '2020.07.18'
         df = crawl.daily_crawl_naver_news(today)
 
         df.to_sql('pagerank', con, if_exists = 'append', index = False)

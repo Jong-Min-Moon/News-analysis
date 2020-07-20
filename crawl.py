@@ -41,7 +41,7 @@ def tokenize(sent):
     res, score = kiwi.analyze(sent)[0] # 첫번째 결과를 사용
     return [word + ('다' if tag.startswith('V') else '') # 동사에는 '다'를 붙여줌
             for word, tag, _, _ in res
-            if not tag.startswith('E') and not tag.startswith('J') and not tag.startswith('S')] # 조사, 어미, 특수기호는 제거
+            if not tag.startswith('E') and not tag.startswith('J') and not tag.startswith('S') and not tag.startswith('V')] # 조사, 어미, 특수기호는 제거
 
 def daily_crawl_naver_news(today):
     mycrawl = naver_crawl('육군', today)
@@ -69,9 +69,9 @@ def daily_crawl_naver_news(today):
         query_words = '육군, ' + ', '.join(top_words)
         print(query_words)
         news_num = mycrawl.get_news_num(query_words)
-        df = df.append(pd.Series([top_title, news_num , top_words]), ignore_index=True)
-    df.columns = ['제목', '기사갯수', '단어']
-    df = df.sort_values(by = '기사갯수', ascending = False)
+        df = df.append(pd.Series([top_title, news_num]), ignore_index=True)
+    df.columns = ['title', 'num']
+    df = df.sort_values(by = 'num', ascending = False)
     print(df)
     return(df)
 
