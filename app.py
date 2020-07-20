@@ -33,7 +33,6 @@ con = sqlite3.connect('./rokanews.db')
 # data_comment = pd.read_sql('SELECT * FROM NC', con)
 # data_topic = pd.read_sql('SELECT * FROM LDA', con)
 data_top10 = pd.read_sql('SELECT * FROM pagerank', con)
-print(data_top10)
 con.close()
 
 
@@ -377,7 +376,8 @@ Top10_Table = html.Div(className = 'section',
 
 Daily_Top10_Card = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스 주요 주제 10개")),
-    dbc.CardBody([daily_top10]),
+    dbc.CardBody([Dropdown_Top10_Day,
+                    Top10_Table]),
 ]
 
 @app.callback(
