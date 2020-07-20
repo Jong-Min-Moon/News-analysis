@@ -41,7 +41,7 @@ def tokenize(sent):
     res, score = kiwi.analyze(sent)[0] # 첫번째 결과를 사용
     return [word + ('다' if tag.startswith('V') else '') # 동사에는 '다'를 붙여줌
             for word, tag, _, _ in res
-            if not tag.startswith('E') and not tag.startswith('J') and not tag.startswith('S') and word not in stopwords] # 조사, 어미, 특수기호는 제거
+            if not tag.startswith('E') and not tag.startswith('J') and not tag.startswith('S')] # 조사, 어미, 특수기호는 제거
 
 def daily_crawl_naver_news(today):
     mycrawl = naver_crawl('육군', today)
@@ -69,9 +69,10 @@ def daily_crawl_naver_news(today):
         query_words = '육군, ' + ', '.join(top_words)
         print(query_words)
         news_num = mycrawl.get_news_num(query_words)
-        df = df.append(pd.Series([top_title, int(news_num) , top_words]), ignore_index=True)
+        df = df.append(pd.Series([top_title, news_num , top_words]), ignore_index=True)
     df.columns = ['제목', '기사갯수', '단어']
     df = df.sort_values(by = '기사갯수', ascending = False)
+    print(df)
     return(df)
 
 
@@ -120,7 +121,7 @@ class naver_crawl():
             total_news = re.split(' / ', total_news.text)[1][0:-1] # 1-10 / 629건 과 같은 형식에서 629만 가져오기. '/'로 쪼갠 다음, '건'을 지운다.
             total_news = int(total_news.replace(',','')) # 나눗셈을 하기 위해 자릿수 표시하는 ','를 지우고, string을 int로 변경
                         
-        return total_news
+        return int(total_news)
 
     def get_naver_news(self):   
         #1. 탐색할 페이지 수 결정하기
