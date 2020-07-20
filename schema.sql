@@ -33,5 +33,6 @@ DROP TABLE IF EXISTS pagerank;
 CREATE TABLE pagerank (
     doc_id INTEGER,
 	title	TEXT,
-  num INTEGER
+  num INTEGER,
+  time TEXT
 );

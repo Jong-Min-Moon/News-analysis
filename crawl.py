@@ -9,7 +9,6 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 from kiwipiepy import Kiwi
 
-import matplotlib.colors as mcolors
 import operator
 
 import json
@@ -71,6 +70,7 @@ def daily_crawl_naver_news(today):
         news_num = mycrawl.get_news_num(query_words)
         df = df.append(pd.Series([top_title, news_num]), ignore_index=True)
     df.columns = ['title', 'num']
+    df['time'] = today
     df = df.sort_values(by = 'num', ascending = False)
     print(df)
     return(df)

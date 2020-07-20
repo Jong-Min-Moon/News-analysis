@@ -1,4 +1,4 @@
-import flask
+
 
 import dash
 import dash_core_components as dcc
@@ -11,15 +11,15 @@ import plotly.graph_objects as go
 
 import pandas as pd
 import numpy as np
-from wordcloud import WordCloud
-import matplotlib.colors as mcolors
+#from wordcloud import WordCloud
+#import matplotlib.colors as mcolors
 
 import os #파일 및 폴더 관리
 import sqlite3
 
 
-import basic
-from functions 
+from widgets import functions 
+from widgets import basic
 
 
 
@@ -33,6 +33,7 @@ con = sqlite3.connect('./rokanews.db')
 # data_comment = pd.read_sql('SELECT * FROM NC', con)
 # data_topic = pd.read_sql('SELECT * FROM LDA', con)
 data_top10 = pd.read_sql('SELECT * FROM pagerank', con)
+print(data_top10)
 con.close()
 
 
@@ -360,16 +361,19 @@ NAVBAR = dbc.Navbar(
 data_top10_daylist = np.sort( data_top10.time.unique() )
 Dropdown_Top10_Day = dcc.Dropdown(id = "Dropdown_Top10_Day", options = [ {"label": YMD, "value": YMD} for YMD in data_top10_daylist ], value = data_top10_daylist[-1])
 
-Top10_Table = html.Div(className='section', children=[
-            html.Div(
-                className='page',
-                children=[
-                    html.Div(
-                        id = 'Top10_Table',
+Top10_Table = html.Div(className = 'section',
+                       children=[
+                            html.Div(
+                                className='page',
+                                id = 'Top10_Table'
+                            )
+                       ]
+) 
+                
+          
+                        
                         #children=top10_table.generate_table()
-                    )     
-            )
-    ])
+
 
 Daily_Top10_Card = [
     dbc.CardHeader(html.H5("오늘의 육군 관련 뉴스 주요 주제 10개")),
@@ -896,7 +900,7 @@ def Dropdown_Top10_day__Top10_Table(selected_day):
            
 #         ]
 #     ),
-]
+
 ###########################################################################
 
 ######################################################################
