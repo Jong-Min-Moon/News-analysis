@@ -91,9 +91,8 @@ class naver_crawl():
         print('{} 총 {}페이지, {}개의 기사'.format( self.crawldate, total_pages, total_news) ) # 뉴스 개수 출력            
                         
         #2. 링크 추출
-        # for j in range(total_pages):
         doc_id = 0
-        for j in range(1):
+        for j in range(total_pages):
             d['start'] = str(j*10 + 1) # 1, 11, 21, 31, ...
             response = requests.get(base_url, params=d)
             soup = BeautifulSoup(response.text, 'lxml')                            
@@ -128,16 +127,7 @@ class naver_crawl():
                 try:
                     relation = litag.select('dl > dd > ul.relation_lst')[0]
                     is_relation = True
-                    print('관련 기사 존재')     
-                    self.insert_naver_news([ #원본 기사를 일단 데이터프레임에 집어넣음
-                        self.three_digits(doc_id), press, title, ex_url, in_url, content, is_relation, ''
-                        ])
-
-              
-                        
-                    # except: #관련 기사가 5건 이하
-
-
+  
                 except IndexError: #관련 기사가 존재x
                     print('관련 기사가 존재 x')
                     is_relation = False
@@ -153,18 +143,22 @@ class naver_crawl():
  
                     
                     except IndexError:
-                        print('관련 기사가 5건 이하')
+                        self.insert_naver_news([ #원본 기사를 일단 데이터프레임에 집어넣음
+                            self.three_digits(doc_id), press, title, ex_url, in_url, content, is_relation, ''
+                            ])
+
+                        print('관련 기사가 5건 미만')
                         litags_relation = relation.select('li')
                         for litag_relation in litags_relation:
                             doc_id += 1
                             title_sec = litag_relation.select('a')[0]['title']
-                            print(title_sec)
                             ex_url_sec = litag_relation.select('a')[0]['href']
                             press_sec = litag_relation.select('span.txt_sinfo > span.press')[0]['title']
                             self.insert_naver_news([
                                 self.three_digits(doc_id), press_sec, title_sec, ex_url_sec, '',  '', True, self.three_digits(doc_id_og)
                         ])
                 if is_more:
+                    print('관련 기사가 5건 이상')
                     d_more = {'where':'news', 
                              'query' : self.query,
                              'sort':0,
@@ -181,9 +175,9 @@ class naver_crawl():
                     soup_more = BeautifulSoup(response_more.text, 'lxml')
                             
                     litags_more = soup_more.select('ul.type01 > li')
-                    for litag_more in litags_more:
-                        doc_id += 1
-                        
+                    n_litags_more = len(litags_more)
+                    for i in range(n_litags_more):
+                        litag_more = litags_more[i]                
                         #1. dt태그에서 기사 제목 뽑아내기
                         dt_tag = litag_more.select('dl > dt > a')[0]
                         title = dt_tag['title']
@@ -208,25 +202,22 @@ class naver_crawl():
                         self.insert_naver_news([
                             self.three_digits(doc_id), press, title, ex_url, in_url,  content, True, self.three_digits(doc_id_og)
                             ])
-# <a href="#" class="more_news" onclick="news_submit_related_option('0790003385134', 0, 'nws*r.more'); return false;">관련뉴스 4건 전체보기</a>
-#      'docid' : '0790003385134'
+                        if i < n_litags_more - 1:
+                            doc_id += 1
+
  
-                        
-        #             df = df.append(pd.DataFrame([[press, title, link, content]], columns=['press','title','url', 'content']), ignore_index=True)
-             
-        #     if j%10 ==0:
-        #         print('{}, {}th page'.format(dt, j))
+  
+            
+            print('{}, {}th page'.format(self.crawldate, j))
                             
                 
-                    
-        # df['time'] = dt
-        # df['v1'] = np.arange(len(df.index))
-        # df.drop_duplicates(['url'])
-        # df = df.drop('v1', axis = 1)
+        print(len(self.df_naver_news.index)) 
+        self.df_naver_news['time'] = self.crawldate
+        self.df_naver_news['v1'] = np.arange(len(self.df_naver_news.index))
+        self.df_naver_news = self.df_naver_news.drop_duplicates(['ex_url'])
+        self.df_naver_news = self.df_naver_news.drop('v1', axis = 1)
 
-        # df['n_comments'] = 0
-        # self.NC_urls[i] =  df   
+        self.df_naver_news['n_comments'] = 0
     
-        # #df.to_csv( self.crawl_objs['NC'][2] +'/naver_comment_url{}_{}.csv'.format(self.query, dt),index=False)
-        # print('{}: 총 {}개의 기사 중 {}개의 네이버 기사(댓글 달기 가능)를 가져옴'.format(dt, total_news, len(df.index)))
+        print('{}: 총 {}개의 기사 가져옴'.format(self.crawldate,  len(self.df_naver_news.index)))
         return self.df_naver_news
