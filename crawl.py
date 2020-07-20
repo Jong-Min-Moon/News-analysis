@@ -1,18 +1,12 @@
 import pandas as pd 
 import numpy as np
-import scipy
 
 import requests
 from bs4 import BeautifulSoup
-import selenium
-from selenium import webdriver  # selenium 프레임 워크에서 webdriver 가져오기
 
 
-import konlpy
-from konlpy.tag import Okt
-from sklearn.feature_extraction.text import CountVectorizer
+
 from kiwipiepy import Kiwi
-import tomotopy as tp
 
 import matplotlib.colors as mcolors
 
@@ -102,69 +96,120 @@ class naver_crawl():
         for j in range(1):
             d['start'] = str(j*10 + 1) # 1, 11, 21, 31, ...
             response = requests.get(base_url, params=d)
-            soup = BeautifulSoup(response.text, 'lxml')
-                            
-            litags = soup.select('ul.type01 > li')
-            #print('{}페이지에는 {}개의 기사'.format( j+1, len(litags) ))
+            soup = BeautifulSoup(response.text, 'lxml')                            
+            litags= soup.select('ul.type01 > li')
             for litag in litags:
                 doc_id += 1
+                is_more = False
                 #1. dt태그에서 기사 제목 뽑아내기
                 dt_tag = litag.select('dl > dt > a')[0]
                 title = dt_tag['title']
                 ex_url = dt_tag['href']
+                press = litag.select('dl > dd.txt_inline > span._sp_each_source')[0].text.replace('언론사 선정', '')
+                                
+                #2. '네이버 뉴스' 처리
+                in_url = ''
 
-
-                #2. '네이버 뉴스'일 경우
-                try:
+                try: #'네이버 뉴스' 링크가 있는 경우에는 in_url이 업데이트된다. 내용도 가져온다.
                     in_url = litag.select('dl > dd.txt_inline > a')[0]['href']     
                     oid = in_url.split('&')[-2][4:]
                     aid = in_url.split('&')[-1][4:]
                     in_url = 'https://n.news.naver.com/article/{}/{}'.format(oid, aid) 
                     response_content = requests.get(in_url, headers={'User-Agent':'Mozilla/5.0'})
                     soup_content = BeautifulSoup(response_content.text, 'lxml')
-                    try:
-                        news_area = soup_content.select('div#dic_area')
-                        content = news_area[0].text
-                    except: 
-                        content = ''
-                except:
-                    in_url = ''
+                    news_area = soup_content.select('div#dic_area')
+                    content = news_area[0].text
+                except:# '네이버 뉴스'링크가 없거나, 링크가 있어도 내용을 가져오지 못하는 경우.
                     content = ''
-                press = litag.select('dl > dd.txt_inline > span._sp_each_source')[0].text.replace('언론사 선정', '')
-  
+    
+                        
 
                 #3. 관련 기사가 존재할 경우
-                try: #관련 기사가 존재
+                try:
                     relation = litag.select('dl > dd > ul.relation_lst')[0]
                     is_relation = True
+                    print('관련 기사 존재')     
                     self.insert_naver_news([ #원본 기사를 일단 데이터프레임에 집어넣음
-                        self.three_digits(doc_id), press, title, ex_url, in_url, content, True, ''
+                        self.three_digits(doc_id), press, title, ex_url, in_url, content, is_relation, ''
                         ])
-                    
-                    try: #관련 기사가 5건 이상
-                        news_more = litag.select('dl > dd > div.newr_more')[0]
-                        print(news_more, '관련 기사가 5건 이상')
+
+              
                         
-                    except: #관련 기사가 5건 이하
-                        print(relation)
+                    # except: #관련 기사가 5건 이하
+
+
+                except IndexError: #관련 기사가 존재x
+                    print('관련 기사가 존재 x')
+                    is_relation = False
+                    self.insert_naver_news([ 
+                        self.three_digits(doc_id), press, title, ex_url, in_url, content, is_relation, ''
+                        ])  
+
+                if is_relation:
+                    doc_id_og = doc_id
+                    try:
+                        news_more = litag.select('dl > dd > div.newr_more > a')[0]['onclick'].split("'")[1]
+                        is_more = True
+ 
+                    
+                    except IndexError:
+                        print('관련 기사가 5건 이하')
                         litags_relation = relation.select('li')
-                        doc_id_og = doc_id
                         for litag_relation in litags_relation:
                             doc_id += 1
                             title_sec = litag_relation.select('a')[0]['title']
+                            print(title_sec)
                             ex_url_sec = litag_relation.select('a')[0]['href']
                             press_sec = litag_relation.select('span.txt_sinfo > span.press')[0]['title']
                             self.insert_naver_news([
-                                self.three_digits(doc_id), press_sec, title_sec, ex_url_sec, '',  '', True, three_digits(doc_id_og)
+                                self.three_digits(doc_id), press_sec, title_sec, ex_url_sec, '',  '', True, self.three_digits(doc_id_og)
                         ])
+                if is_more:
+                    d_more = {'where':'news', 
+                             'query' : self.query,
+                             'sort':0,
+                             'photo':0,
+                             'field':0,
+                             'reporter_article':'',
+                             'pd': 3,
+                             'ds' : self.crawldate,
+                             'de' : self.crawldate,
+                             'docid': news_more,
+                             'refresh_start': 0,
+                             'related' : 1}
+                    response_more = requests.get(base_url, params = d_more)
+                    soup_more = BeautifulSoup(response_more.text, 'lxml')
+                            
+                    litags_more = soup_more.select('ul.type01 > li')
+                    for litag_more in litags_more:
+                        doc_id += 1
+                        
+                        #1. dt태그에서 기사 제목 뽑아내기
+                        dt_tag = litag_more.select('dl > dt > a')[0]
+                        title = dt_tag['title']
+                        ex_url = dt_tag['href']
+                        press = litag_more.select('dl > dd.txt_inline > span._sp_each_source')[0].text.replace('언론사 선정', '')
+                                
+                        #2. '네이버 뉴스' 처리
+                        in_url = ''
 
-                except: #관련 기사가 존재x
-                    print(self.three_digits(doc_id))
-                    is_relation = False
-                    self.insert_naver_news([ 
-                        self.three_digits(doc_id), press, title, ex_url, in_url, content, False, ''
-                        ])
-     
+                        try: #'네이버 뉴스' 링크가 있는 경우에는 in_url이 업데이트된다. 내용도 가져온다.
+                            in_url = litag_more.select('dl > dd.txt_inline > a')[0]['href']     
+                            oid = in_url.split('&')[-2][4:]
+                            aid = in_url.split('&')[-1][4:]
+                            in_url = 'https://n.news.naver.com/article/{}/{}'.format(oid, aid) 
+                            response_content = requests.get(in_url, headers={'User-Agent':'Mozilla/5.0'})
+                            soup_content = BeautifulSoup(response_content.text, 'lxml')
+                            news_area = soup_content.select('div#dic_area')
+                            content = news_area[0].text
+                        except:# '네이버 뉴스'링크가 없거나, 링크가 있어도 내용을 가져오지 못하는 경우.
+                            content = ''
+                    
+                        self.insert_naver_news([
+                            self.three_digits(doc_id), press, title, ex_url, in_url,  content, True, self.three_digits(doc_id_og)
+                            ])
+# <a href="#" class="more_news" onclick="news_submit_related_option('0790003385134', 0, 'nws*r.more'); return false;">관련뉴스 4건 전체보기</a>
+#      'docid' : '0790003385134'
  
                         
         #             df = df.append(pd.DataFrame([[press, title, link, content]], columns=['press','title','url', 'content']), ignore_index=True)
