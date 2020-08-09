@@ -1,4 +1,5 @@
 import crawl
+import NLP
 
 import sqlite3
 import pandas as pd
@@ -37,7 +38,7 @@ mycrawl.get_naver_news()
 mycrawl.df_naver_news.to_sql('naver_news', con, if_exists = 'append', index = False)
 
 mycrawl.get_naver_news_comment()
-mycrawl.df_naver_news_comment.to_sql('naver_comment', con, if_exists = 'append', index = False)
+NLP.add_sent_score(mycrawl.df_naver_news_comment).to_sql('naver_comment', con, if_exists = 'append', index = False)
 
 con.commit()
 
