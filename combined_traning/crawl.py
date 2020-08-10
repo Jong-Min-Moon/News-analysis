@@ -87,7 +87,8 @@ class naver_crawl():
 
     def three_digits(self, num):
         numstring = str(num)
-        return self.crawldate.replace('.', '') + ''.join(list(np.zeros(3 - len(numstring), dtype = int).astype('str'))) + numstring
+        #print(numstring)
+        return self.crawldate.replace('.', '') + ''.join(list(np.zeros(4 - len(numstring), dtype = int).astype('str'))) + numstring
 
     def insert_naver_news(self, data):
             self.df_naver_news = self.df_naver_news.append(
@@ -102,7 +103,7 @@ class naver_crawl():
              'query' : new_query,
              'sort':1,
              'photo':0,
-             'field':0,
+             'field':1,
              'reporter_article':'',
              'pd': 3,
              'ds' : self.crawldate,
@@ -133,7 +134,7 @@ class naver_crawl():
              'query' : self.query,
              'sort':0,
              'photo':0,
-             'field':0,
+             'field':1,
              'reporter_article':'',
              'pd': 3,
              'ds' : self.crawldate,
@@ -248,7 +249,7 @@ class naver_crawl():
                                 'query' : self.query,
                                 'sort':0,
                                 'photo':0,
-                                'field':0,
+                                'field':1,
                                 'reporter_article':'',
                                 'pd': 3,
                                 'ds' : self.crawldate,
@@ -321,8 +322,8 @@ class naver_crawl():
         chrome_options.add_argument('--headless')
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
-        browser = webdriver.Chrome('./chromedriver.exe',options=chrome_options) #put this line inside the function def, or chrome winodws keeps opening
-
+       #browser = webdriver.Chrome('./chromedriver.exe',options=chrome_options) #put this line inside the function def, or chrome winodws keeps opening
+        browser = webdriver.Chrome('./chromedriver',options=chrome_options) #리눅스
         print('로드 완료', urls_table)
         for i, row in urls_table.iterrows():
             print(i, 'th news')
