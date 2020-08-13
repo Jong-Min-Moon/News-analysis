@@ -16,7 +16,7 @@ import operator
 import json
 import datetime
 import time
-from time import sleep
+from time
 import re #정규식
 import os #파일 및 폴더 관리
 import shutil #파일 한번에 삭제
@@ -335,17 +335,21 @@ class naver_crawl():
             url = urls_table.loc[i, 'in_url']
             rep_url = '{}&m_view=1&includeAllCount=true&m_url=%2Fcomment%2Fall.nhn%3FserviceId%3Dnews%26gno%3Dnews417%2C0000512678%26sort%3Dlikability'.format(url)    
             print(i, 'th news:', rep_url)
-            browser.implicitly_wait(4) #웹 드라이버
+            browser.implicitly_wait(30) #웹 드라이버
             browser.get(rep_url)
             
             #더보기 계속 클릭하기
+            for _ in range(10):
             while True:
                 try:
-                    see_more_button = browser.find_element_by_css_selector('.u_cbox_page_more')
-                    see_more_button.click()        
+                    see_more_button = browser.find_element_by_css_selector('a.u_cbox_btn_more')
+                    print(see_more_button)
+                    see_more_button.click()
+                    print('다음 페이지')     
                     time.sleep(1)
                 except:
-                    break
+                     print('버튼 없음')
+                     break
             
             #댓글추출
             html = browser.page_source
