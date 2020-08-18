@@ -16,19 +16,19 @@ import operator
 import json
 import datetime
 import time
-from time
+
 import re #정규식
 import os #파일 및 폴더 관리
 import shutil #파일 한번에 삭제
 import urllib.request        
 import sys
+import sqlite3
 
 from random import uniform
 import math #반올림
 
 
 
-import datetime
 import os #파일 및 폴더 관리
 import shutil #파일 한번에 삭제
 import pickle
@@ -72,7 +72,7 @@ def daily_crawl_naver_news(today):
         news_num = mycrawl.get_news_num(query_words)
         df = df.append(pd.Series([top_title, news_num]), ignore_index=True)
     df.columns = ['title', 'num']
-    df['time'] = today
+    df['time_written'] = today
     df = df.sort_values(by = 'num', ascending = False)
     print(df)
     return(df)
@@ -127,6 +127,8 @@ class naver_crawl():
         return int(total_news)
 
     def get_naver_news(self):   
+        
+
         #1. 탐색할 페이지 수 결정하기
         
         base_url = 'https://search.naver.com/search.naver'
@@ -302,7 +304,7 @@ class naver_crawl():
                             
                 
         print(len(self.df_naver_news.index)) 
-        self.df_naver_news['time'] = self.crawldate
+        self.df_naver_news['time_written'] = self.crawldate
         self.df_naver_news['v1'] = np.arange(len(self.df_naver_news.index))
         self.df_naver_news = self.df_naver_news.drop_duplicates(['ex_url'])
         self.df_naver_news = self.df_naver_news.drop_duplicates(['doc_id'])
@@ -311,11 +313,19 @@ class naver_crawl():
         self.df_naver_news['n_comments'] = 0
         self.df_naver_news['query'] = self.query
         print('{}: 총 {}개의 기사 가져옴'.format(self.crawldate,  len(self.df_naver_news.index)))
+        
+        #start database
+        con = sqlite3.connect("./training.db")
+        self.df_naver_news.to_sql('naver_news', con, if_exists = 'append', index = False)
+        con.commit()
+        con.close()
+
         return self.df_naver_news
 
 
     def get_naver_news_comment(self):
-        df = pd.DataFrame(columns=['press', 'title', 'url', 'content', 'like', 'dislike', 'time', 're_reply' ])
+        con = sqlite3.connect("./training.db")
+
         urls_table = self.df_naver_news
         urls_table = urls_table[urls_table.in_url != '' ]
         print('로드:', urls_table)
@@ -327,9 +337,10 @@ class naver_crawl():
         browser = webdriver.Chrome('./chromedriver_84_win.exe',options=chrome_options) #put this line inside the function def, or chrome winodws keeps opening
         
         print('로드 완료', urls_table)
+        total_comments = 0
         for i, row in urls_table.iterrows():
-           
-            
+            df = pd.DataFrame(columns=['press', 'title', 'url', 'content', 'like', 'dislike', 'time_written', 're_reply' ])
+
             press = urls_table.loc[i, 'press']
             title = urls_table.loc[i, 'title']
             url = urls_table.loc[i, 'in_url']
@@ -337,19 +348,19 @@ class naver_crawl():
             print(i, 'th news:', rep_url)
             browser.implicitly_wait(30) #웹 드라이버
             browser.get(rep_url)
-            
+            comment_page_num = 1
             #더보기 계속 클릭하기
-            for _ in range(10):
             while True:
+                
                 try:
                     see_more_button = browser.find_element_by_css_selector('a.u_cbox_btn_more')
-                    print(see_more_button)
                     see_more_button.click()
-                    print('다음 페이지')     
+                    print('댓글 %d 페이지' % comment_page_num)     
                     time.sleep(1)
+                    comment_page_num += 1
                 except:
-                     print('버튼 없음')
-                     break
+                      print('버튼 없음')
+                      break
             
             #댓글추출
             html = browser.page_source
@@ -365,13 +376,16 @@ class naver_crawl():
                     if content != 0:
                         like = litag.select('div.u_cbox_tool > div.u_cbox_recomm_set > a')[0].select('em.u_cbox_cnt_recomm')[0].text #추천 
                         dislike = litag.select('div.u_cbox_tool > div.u_cbox_recomm_set > a')[1].select('em.u_cbox_cnt_unrecomm')[0].text #비추천
-                        time = litag.select('div.u_cbox_info_base > span.u_cbox_date')[0].text #댓글작성날짜
+                        time_written = litag.select('div.u_cbox_info_base > span.u_cbox_date')[0].text #댓글작성날짜
                         re_reply = litag.select('div.u_cbox_tool > a.u_cbox_btn_reply > span.u_cbox_reply_cnt')[0].text #답글수
 
-                        df = df.append(pd.DataFrame([[press, title, url, content, like, dislike, time, re_reply]], columns=['press', 'title', 'url', 'content', 'like', 'dislike', 'time', 're_reply' ]), ignore_index=True)
+                        df = df.append(pd.DataFrame([[self.query, press, title, url, content, like, dislike, time_written, re_reply]], columns=['query', 'press', 'title', 'url', 'content', 'like', 'dislike', 'time_written', 're_reply' ]), ignore_index=True)
+            print(df)
             
-        #df.to_csv( './NC/naver_comment_{}_{}.csv'.format(self.query, self.d_range[j]) ,index=False)
-        df['query'] = self.query
-        self.df_naver_news_comment = df
+            df.to_sql('naver_comment', con, if_exists = 'append', index = False)
+            con.commit()
+            
+            total_comments += len(df)
         browser.quit() 
-        print('총 {}개의 기사에서 {}개의 네이버 기사(댓글 달기 가능)를 가져옴'.format( len(urls_table), len(df) ) )    
+        con.close()
+        print('총 {}개의 기사에서 {}개의 댓글을 가져옴'.format( len(urls_table), total_comments ) )    

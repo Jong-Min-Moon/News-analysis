@@ -1,12 +1,8 @@
-
+import pandas as pd
 import combined_training as ct
 
-ct.do_crawl('공군 황제', '2020.06.12', initialize = True)
 
-# ct.do_crawl('공군 황제', '2020.06.19', initialize = False)
-# ct.do_crawl('공군 황제', '2020.06.20', initialize = False)
-# ct.do_crawl('공군 황제', '2020.06.21', initialize = False)
-# ct.do_crawl('공군 황제', '2020.06.22', initialize = False)
-# ct.do_crawl('공군 황제', '2020.06.23', initialize = False)
-# ct.do_crawl('공군 황제', '2020.06.24', initialize = False)
-# ct.do_crawl('공군 황제', '2020.06.25', initialize = False)
+crawl_daterange_BSY = pd.date_range('2020.07.13', '2020.08.14')
+for crawl_date_obj in crawl_daterange_BSY:
+    ct.do_crawl('백선엽', crawl_date_obj.strftime('%Y.%m.%d'), initialize = False)
+# ct.do_crawl('백선엽', '2020.08.15', initialize = False)

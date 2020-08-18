@@ -9,7 +9,7 @@ CREATE TABLE naver_news (
   content TEXT NOT NULL,
   is_relation TEXT NOT NULL,
   master INTEGER,
-  time TEXT NOT NULL,
+  time_written TEXT NOT NULL,
   n_comments INTEGER
 );
 
@@ -23,7 +23,7 @@ CREATE TABLE naver_comment (
 	content	TEXT,
 	like	INTEGER,
 	dislike	INTEGER,
-	time	TEXT,
+	time_written	TEXT,
 	re_reply	INTEGER,
 	polar_sum	INTEGER,
 	tot	INTEGER,
