@@ -119,8 +119,24 @@ df_naver_news = pd.read_sql(query, con)
 news = df_naver_news.content
 
 G, id2word, word2id = word_graph(news, tokenize= tokenize, min_count=2, window=2, min_cooccurrence=2)
-# idx_KJY = word2id['김정은']
-print( word2id )
+idx_KJY = word2id['국군']
 word_graph_nx = nx.from_scipy_sparse_matrix(G)
-p = nx.shortest_path_length(word_graph_nx, source = idx_KJY)
-print(p)
+len_words = nx.shortest_path_length(word_graph_nx, source = idx_KJY)
+print(len_words)
+
+#length distribution
+counter = Counter(len_words[key_word] for key_word in len_words)
+counter = {w:c for w,c in counter.items()}
+
+length_freq = [counter[length] for length in sorted(counter.keys())]
+
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+ax.plot(length_freq)
+
+#plt.show()
+
+
+#close words
+close_words = [id2word[key_idx] for key_idx in len_words if len_words[key_idx] == 1 or len_words[key_idx] == 2]
+print(close_words)
