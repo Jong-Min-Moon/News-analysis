@@ -666,7 +666,7 @@ Search_Card = [
     dbc.CardHeader(html.H5("특정 키워드 관련 내용 추이 보기")),
     
     dbc.CardBody(
-        [   dcc.Input(id='my-id', value='추미애', type='text'),
+        [   dcc.Input(id='my-id', value='추미애', type='text', debounce = True),
             html.Hr(),
             html.Div(id='my-div'),
             html.Hr(),
