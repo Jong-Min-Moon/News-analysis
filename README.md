@@ -10,10 +10,10 @@
 ### 파일 설명
 * chromerdiver: 파이썬이 크롤링을 할 때 사용하는 크롬 브라우저. 컴퓨터에 설치된 운영체제 및 크롬 브라우저 버전에 맞는 버전을 사용해야 함
 * crawler.py : 네이버 뉴스 및 댓글 크롤링과 감성 분석, 주제 분류를 실행하는 프로그램. **2020년 7월에 작성한 프로그램으로, 현재는 네이버 뉴스의 url 체계가 바뀌어 프로그램이 작동하지 않습니다. 바뀐 url 체계에 맞게 수정하면 작동합니다.**
-    ** Crawler : 크롤링 수행하는 class
-    ** add_sent_score: 감성 분석 점수 추가하는 함수. 군산대에서 제작한 한국어 감성점수 사전을 이용해 기사 내 단어의 감성점수 총합을 계산하는 단순한 방식. https://github.com/ehsong/korean-sentiment-analysis
-    ** Do_LDA : 뉴스 기사를 유사한 내용끼리 묶고 시각화하는 함수. Latent Dirichlet Allocation 알고리즘을 구현한 패키지 tomotopy 사용. 시각화는 t-sne 알고리즘을 구현한 sklearn 사용.
-    ** tokenize: 문장을 형태소 단위로 분리하는 함수. kiwi, konlpy 패키지 사용.
+    - Crawler : 크롤링 수행하는 class
+    - add_sent_score: 감성 분석 점수 추가하는 함수. 군산대에서 제작한 한국어 감성점수 사전을 이용해 기사 내 단어의 감성점수 총합을 계산하는 단순한 방식. https://github.com/ehsong/korean-sentiment-analysis
+    - Do_LDA : 뉴스 기사를 유사한 내용끼리 묶고 시각화하는 함수. Latent Dirichlet Allocation 알고리즘을 구현한 패키지 tomotopy 사용. 시각화는 t-sne 알고리즘을 구현한 sklearn 사용.
+    - tokenize: 문장을 형태소 단위로 분리하는 함수. kiwi, konlpy 패키지 사용.
 * requirements.txt : 필요한 패키지 목록.
 * rokanews.db : 크롤링한 데이터를 저장하는 sqlite 데이터베이스 파일
 * schema.sql : 데이터베이스 포맷을 지정하고 초기화하는 sql 파일
@@ -34,8 +34,8 @@ EOF
 
 ### 특징
 * 데이터 시각화 라이브러리인 plotly와 웹 어플리케이션 프레임워크 dash를 이용해 크롤링 결과 대시보드 웹앱 작성
-* heroku를 이용해 deploy
-** heroku의 무료 플랜을 사용하기 때문에, 접속시 1분 가량 소모됩니다
+* 작성한 웹앱 프로그램(app.py)를 heroku를 이용해 deploy
+    - heroku의 무료 플랜을 사용하기 때문에, 접속시 1분 가량 소모됩니다
 
 ### 웹앱 링크
 https://news-analysis-roka.herokuapp.com/
