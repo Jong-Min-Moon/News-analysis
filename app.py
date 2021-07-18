@@ -330,7 +330,7 @@ NAVBAR = dbc.Navbar(
                 [
                     
                     dbc.Col(
-                        dbc.NavbarBrand("육군 보도 분석", className="ml-2")
+                        dbc.NavbarBrand("육군 보도 분석 - 문종민", className="ml-2")
                     ),
                 ],
                 align="center",
