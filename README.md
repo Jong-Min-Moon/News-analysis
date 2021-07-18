@@ -16,7 +16,7 @@
     - Do_LDA : 뉴스 기사를 유사한 내용끼리 묶고 시각화하는 함수. Latent Dirichlet Allocation 알고리즘을 구현한 패키지 tomotopy 사용. 시각화는 t-sne 알고리즘을 구현한 sklearn 사용.
     - tokenize: 문장을 형태소 단위로 분리하는 함수. kiwi, konlpy 패키지 사용.
 * requirements.txt : 필요한 패키지 목록.
-* rokanews.db : 크롤링한 데이터를 저장하는 sqlite 데이터베이스 파일
+* news.db : 크롤링한 데이터를 저장하는 sqlite 데이터베이스 파일
 * schema.sql : 데이터베이스 포맷을 지정하고 초기화하는 sql 파일
 * news_crawl_example.csv : 뉴스 기사 내용 크롤링 결과 예시
 * news_crawl_example_2020.05.31.csv : LDA로 뉴스 기사 내용 군집화하고 t-sne로 시각화한 내용 예시. x, y컬럼은 t-sne로 2차원 차원축소한 결과 벡터, label 컬럼은 주제 번호
