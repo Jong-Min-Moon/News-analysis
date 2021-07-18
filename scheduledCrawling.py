@@ -13,7 +13,7 @@ import sqlite3
 
 
 if __name__ == '__main__':
-    con = sqlite3.connect("./crawlTest/rokanews.db")
+    con = sqlite3.connect("./crawlTest/news.db")
 
     #reset rokanews.db
     with open('schema.sql') as fp:
@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
     def job1():
         today = datetime.today().strftime('%Y-%m-%d')
-        today_crawl = Crawler('육군', today, today, './crawlTest')
+        today_crawl = Crawler('키워드를 입력하세요', today, today, './crawlTest')
 
 
         #news content
