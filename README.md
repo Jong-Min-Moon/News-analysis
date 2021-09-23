@@ -39,8 +39,8 @@ EOF
     - heroku의 무료 플랜을 사용하기 때문에, 접속시 1분 가량 소모됩니다
 
 ### 웹앱 링크
-https://news-analysis-roka.herokuapp.com/
-
+https://news-analysis-dashboard.herokuapp.com
+    
 ### 구성
 1. 날짜 선택
 2. 기사 주제별 감성 분포 막대그래프
